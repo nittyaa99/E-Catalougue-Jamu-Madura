@@ -1,109 +1,103 @@
 from flask import Blueprint, jsonify, request
-from models import db, perizinan_models 
+from models.perizinan_models import db, Perizinan 
 from flask_jwt_extended import jwt_required
 
-jamu_bp = Blueprint('jamu', __name__)
+perizinan_bp = Blueprint('perizinan', __name__)
 
-@jamu_bp.route('/jenis', methods=['GET'])
+# --- READ (GET SEMUA PERIZINAN) ---
+@perizinan_bp.route('/perizinan', methods=['GET'])
 @jwt_required()
-def get_jenis():
+def get_perizinan():
     try:
-        data_jamu = perizinan_models.query.all()
-        hasil_json = [jamu.to_dict() for jamu in data_jamu]
+        data_perizinan = Perizinan.query.all()
+        # Pakai 'item' biar aman dan konsisten
+        hasil_json = [item.to_dict() for item in data_perizinan]
 
         return jsonify({
             "status": "success",
-            "message": "Data berhasil diambil",
+            "message": "Data perizinan berhasil diambil",
             "data": hasil_json
         }), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-    
 
-@jamu_bp.route('/jenis/<int:id_hapus>', methods=['DELETE'])
+# --- INSERT (POST PERIZINAN BARU) ---
+@perizinan_bp.route('/perizinan', methods=['POST'])
 @jwt_required()
-def hapus_jenis(id_hapus):
-    try: 
-        jamu_target = JenisJamu.query.get(id_hapus)
-
-        if not jamu_target:
-            return jsonify({
-                "status": "error",
-                "message": "data tidak ditemukan"
-            }), 404 
-        
-        db.session.delete(jamu_target)
-        db.session.commit()
-
-        return jsonify({"status": "success", "message": "Data berhasil dihapus"}), 200
-
-    except Exception as e: 
-        return jsonify({
-            "status": "error",
-            "message": str(e), 
-        }), 500
-
-
-@jamu_bp.route('/jenis', methods=['POST'])
-@jwt_required()
-def tambah_jenis():
+def tambah_perizinan():
     try:
         data = request.json
-        input_nama = data.get('nama_jenis')
+        input_nama = data.get('nama_perizinan') # Ganti field sesuai database abang
 
         if not input_nama:
-            return jsonify ({
+            return jsonify({
                 "status": "error",
-                "message" :"Nama jamu tidak boleh kosong"
+                "message": "Nama perizinan tidak boleh kosong!"
             }), 400
             
-        jenis_baru = JenisJamu(nama_jenis = input_nama)
+        perizinan_baru = Perizinan(nama_perizinan=input_nama)
 
-        db.session.add(jenis_baru)
+        db.session.add(perizinan_baru)
         db.session.commit()
 
-        return jsonify ({
-            "status":"success",
-            "message": "Data jamu berhasil di tambahkan"
+        return jsonify({
+            "status": "success",
+            "message": "Data perizinan berhasil ditambahkan"
         }), 201
     except Exception as e:
-        return jsonify ({
-            "status" : "error",
-            "message" : str(e)
-        }), 500
-    
-# ====================================
-@jamu_bp.route('/jenis/<int:id_edit>', methods=['PUT'])
-@jwt_required()
-def edit_jenis(id_edit):
-    try:
-        jamu_target = JenisJamu.query.get(id_edit)
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-        if not jamu_target:
-            return jsonify ({
-                "status" : "error",
-                "message" : "Data tidak ditemukan"
+# --- UPDATE (PUT PERIZINAN) ---
+@perizinan_bp.route('/perizinan/<int:id_edit>', methods=['PUT'])
+@jwt_required()
+def edit_perizinan(id_edit):
+    try:
+        target = Perizinan.query.get(id_edit)
+
+        if not target:
+            return jsonify({
+                "status": "error",
+                "message": "Data tidak ditemukan"
             }), 404
       
         data = request.json
-        input_nama_baru = data.get('nama_jenis')
+        input_nama_baru = data.get('nama_perizinan')
 
         if not input_nama_baru:
-            return jsonify ({
-                "status" : "error",
-                "message" :"Data tidak boleh khosong"
+            return jsonify({
+                "status": "error",
+                "message": "Data tidak boleh kosong"
             }), 400
         
-        jamu_target.nama_jenis = input_nama_baru
+        target.nama_perizinan = input_nama_baru
         db.session.commit()
 
-        return jsonify ({
-            "status" : "success",
-            "message" : "Jenis berhasil di tambahkan cuy"
+        return jsonify({
+            "status": "success",
+            "message": "Data perizinan berhasil diupdate!"
         }), 200
-
     except Exception as e: 
-        return jsonify ({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- DELETE (DELETE PERIZINAN) ---
+@perizinan_bp.route('/perizinan/<int:id_hapus>', methods=['DELETE'])
+@jwt_required()
+def hapus_perizinan(id_hapus):
+    try: 
+        target = Perizinan.query.get(id_hapus)
+
+        if not target:
+            return jsonify({
+                "status": "error",
+                "message": "Data tidak ditemukan"
+            }), 404 
+        
+        db.session.delete(target)
+        db.session.commit()
+
+        return jsonify({
+            "status": "success", 
+            "message": "Data perizinan berhasil dihapus"
+        }), 200
+    except Exception as e: 
+        return jsonify({"status": "error", "message": str(e)}), 500

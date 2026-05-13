@@ -135,7 +135,10 @@ export default function Dashboard() {
                     
                     <div className="flex justify-center gap-3 mt-auto">
                       {/* EDIT */}
-                      <button className="bg-[#FFD700] hover:bg-[#E6C200] text-black text-[11px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 shadow-sm hover:scale-105 transition">
+                      <button 
+                        onClick={() => navigate(`/admin/edit-jamu/${item.id_jenis}`)}
+                        className="bg-[#FFD700] hover:bg-[#E6C200] text-black text-[11px] font-bold py-1.5 px-3 rounded flex items-center gap-1.5 shadow-sm hover:scale-105 transition"
+                      >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>

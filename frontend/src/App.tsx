@@ -10,6 +10,7 @@ import {
 import Login from "./pages/Admin/auth/login";
 import Dashboard from "./pages/Admin/dashboard/dashboard";
 import AddJamu from "./pages/Admin/add_jamu";
+import DetailItem from "./pages/Admin/Detail_item";
 
 // Import User Pages (Kode milikmu)
 import UserDashboard from "./pages/user/Dashboard";
@@ -30,9 +31,10 @@ const App: React.FC = () => {
         <Route path="/keterangan-jamu" element={<KeteranganJamu />} />
 
         {/* Rute Admin (Gabungan dengan temanmu) */}
-        <Route path="/admin/login" element={<Login />} />
+        <Route path="/4dm13n" element={<Login />} />
         <Route path="/dashboard_4dm13n" element={<Dashboard />} />
         <Route path="/admin/add-jamu" element={<AddJamu />} />
+        <Route path="/admin/edit-jamu/:id" element={<DetailItem />} />
 
         {/* Redirect jika path tidak ditemukan */}
         <Route path="*" element={<Navigate to="/" />} />

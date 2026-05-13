@@ -1,58 +1,44 @@
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
+
+// Import Admin (Kode dari temanmu)
 import Login from "./pages/Admin/auth/login";
 import Dashboard from "./pages/Admin/dashboard/dashboard";
 import AddJamu from "./pages/Admin/add_jamu";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem("token_jamu");
+// Import User Pages (Kode milikmu)
+import UserDashboard from "./pages/user/Dashboard";
+import Catalog from "./pages/user/Catalog";
+import Recommendation from "./pages/user/Recommendation";
+import DetailProduk from "./pages/user/Detail_produk";
+import KeteranganJamu from "./pages/user/Keterangan_jamu";
 
-  if (!isAuthenticated) {
-    // Kalau nggak ada tiket, tendang balik ke halaman Login
-    return <Navigate to="/4dm13n" replace />;
-  }
-
-  // Kalau ada tiket, silakan masuk
-  return children;
-};
-
-function App() {
+const App: React.FC = () => {
   return (
-    // Router wajib membungkus seluruh aplikasi agar fitur pindah halaman aktif
     <Router>
-      <div className="flex flex-col min-h-screen">
-        <div className="flex-grow">
-          <Routes>
-            {/* RUTE 1: Halaman Login (Bebas diakses siapa saja) */}
-            <Route path="/4dm13n" element={<Login />} />
+      <Routes>
+        {/* Rute User (Milikmu) */}
+        <Route path="/" element={<UserDashboard />} />
+        <Route path="/catalog" element={<Catalog />} />
+        <Route path="/recommendation" element={<Recommendation />} />
+        <Route path="/detail-produk" element={<DetailProduk />} />
+        <Route path="/keterangan-jamu" element={<KeteranganJamu />} />
 
-            <Route
-              path="/dashboard_4dm13n"
-              element={
-                <ProtectedRoute>
-                  {/* 👇 PERBAIKAN 3: Panggil komponennya pakai huruf D besar */}
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+        {/* Rute Admin (Gabungan dengan temanmu) */}
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/dashboard_4dm13n" element={<Dashboard />} />
+        <Route path="/admin/add-jamu" element={<AddJamu />} />
 
-            <Route
-              path="/admin/add-jamu"
-              element={
-                <ProtectedRoute>
-                  <AddJamu />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
-      </div>
+        {/* Redirect jika path tidak ditemukan */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </Router>
   );
-}
+};
 
 export default App;

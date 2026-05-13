@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request
-from models import db, JenisJamu 
+from models.jenis_models import db, JenisJamu 
 from flask_jwt_extended import jwt_required
 
 jamu_bp = Blueprint('jamu', __name__)
 
+# read
 @jamu_bp.route('/jenis', methods=['GET'])
 @jwt_required()
 def get_jenis():
@@ -19,7 +20,7 @@ def get_jenis():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
-
+    # Delete
 @jamu_bp.route('/jenis/<int:id_hapus>', methods=['DELETE'])
 @jwt_required()
 def hapus_jenis(id_hapus):
@@ -42,8 +43,7 @@ def hapus_jenis(id_hapus):
             "status": "error",
             "message": str(e), 
         }), 500
-
-
+    # Insert
 @jamu_bp.route('/jenis', methods=['POST'])
 @jwt_required()
 def tambah_jenis():
@@ -64,7 +64,7 @@ def tambah_jenis():
 
         return jsonify ({
             "status":"success",
-            "message": "Data jamu berhasil di tambahkan"
+            "message": "Data jamu berhasil ditambahkan"
         }), 201
     except Exception as e:
         return jsonify ({
@@ -72,7 +72,7 @@ def tambah_jenis():
             "message" : str(e)
         }), 500
     
-# ====================================
+    # update
 @jamu_bp.route('/jenis/<int:id_edit>', methods=['PUT'])
 @jwt_required()
 def edit_jenis(id_edit):
@@ -91,7 +91,7 @@ def edit_jenis(id_edit):
         if not input_nama_baru:
             return jsonify ({
                 "status" : "error",
-                "message" :"Data tidak boleh khosong"
+                "message" :"Data tidak boleh kosong"
             }), 400
         
         jamu_target.nama_jenis = input_nama_baru
@@ -99,7 +99,7 @@ def edit_jenis(id_edit):
 
         return jsonify ({
             "status" : "success",
-            "message" : "Jenis berhasil di tambahkan cuy"
+            "message" : "Data jenis jamu berhasil diupdate cuy!"
         }), 200
 
     except Exception as e: 

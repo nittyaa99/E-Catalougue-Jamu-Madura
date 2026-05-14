@@ -34,7 +34,7 @@ const App: React.FC = () => {
         <Route path="/4dm13n" element={<Login />} />
         <Route path="/dashboard_4dm13n" element={<Dashboard />} />
         <Route path="/admin/add-jamu" element={<AddJamu />} />
-        <Route path="/admin/edit-jamu/:id" element={<DetailItem />} />
+        <Route path="/admin/Detail_Item/:id" element={<DetailItem />} />
 
         {/* Redirect jika path tidak ditemukan */}
         <Route path="*" element={<Navigate to="/" />} />

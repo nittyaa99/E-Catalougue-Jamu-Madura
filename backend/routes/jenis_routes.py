@@ -2,10 +2,11 @@ from flask import Blueprint, jsonify, request
 from models.jenis_models import db, JenisJamu 
 from flask_jwt_extended import jwt_required
 
-jamu_bp = Blueprint('jamu', __name__)
+# Deklarasi awal pake jenis_bp
+jenis_bp = Blueprint('jenis_jamu', __name__)
 
-# read
-@jamu_bp.route('/jenis', methods=['GET'])
+# --- READ ---
+@jenis_bp.route('/jenis', methods=['GET'])
 @jwt_required()
 def get_jenis():
     try:
@@ -20,8 +21,9 @@ def get_jenis():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
-    # Delete
-@jamu_bp.route('/jenis/<int:id_hapus>', methods=['DELETE'])
+# --- DELETE ---
+# FIX: Ganti @jamu_bp jadi @jenis_bp
+@jenis_bp.route('/jenis/<int:id_hapus>', methods=['DELETE'])
 @jwt_required()
 def hapus_jenis(id_hapus):
     try: 
@@ -37,14 +39,12 @@ def hapus_jenis(id_hapus):
         db.session.commit()
 
         return jsonify({"status": "success", "message": "Data berhasil dihapus"}), 200
-
     except Exception as e: 
-        return jsonify({
-            "status": "error",
-            "message": str(e), 
-        }), 500
-    # Insert
-@jamu_bp.route('/jenis', methods=['POST'])
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- INSERT ---
+# FIX: Ganti @jamu_bp jadi @jenis_bp
+@jenis_bp.route('/jenis', methods=['POST'])
 @jwt_required()
 def tambah_jenis():
     try:
@@ -67,32 +67,24 @@ def tambah_jenis():
             "message": "Data jamu berhasil ditambahkan"
         }), 201
     except Exception as e:
-        return jsonify ({
-            "status" : "error",
-            "message" : str(e)
-        }), 500
+        return jsonify ({"status" : "error", "message" : str(e)}), 500
     
-    # update
-@jamu_bp.route('/jenis/<int:id_edit>', methods=['PUT'])
+# --- UPDATE ---
+# FIX: Ganti @jamu_bp jadi @jenis_bp
+@jenis_bp.route('/jenis/<int:id_edit>', methods=['PUT'])
 @jwt_required()
 def edit_jenis(id_edit):
     try:
         jamu_target = JenisJamu.query.get(id_edit)
 
         if not jamu_target:
-            return jsonify ({
-                "status" : "error",
-                "message" : "Data tidak ditemukan"
-            }), 404
+            return jsonify ({"status" : "error", "message" : "Data tidak ditemukan"}), 404
       
         data = request.json
         input_nama_baru = data.get('nama_jenis')
 
         if not input_nama_baru:
-            return jsonify ({
-                "status" : "error",
-                "message" :"Data tidak boleh kosong"
-            }), 400
+            return jsonify ({"status" : "error", "message" :"Data tidak boleh kosong"}), 400
         
         jamu_target.nama_jenis = input_nama_baru
         db.session.commit()
@@ -101,9 +93,5 @@ def edit_jenis(id_edit):
             "status" : "success",
             "message" : "Data jenis jamu berhasil diupdate cuy!"
         }), 200
-
     except Exception as e: 
-        return jsonify ({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        return jsonify ({"status": "error", "message": str(e)}), 500

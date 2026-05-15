@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load CSV
-df = pd.read_csv('data.csv')
+df = pd.read_csv('Data Jamu.csv')
 
 # Buat kolom image kosong dulu
 df['image'] = ''
@@ -222,13 +222,12 @@ links = [
 ]
 
 # Isi mulai index ke-10
-start_index = 10
 
 # Masukkan link ke dataframe
 for i, link in enumerate(links):
-    df.loc[start_index + i, 'image'] = link
+    df.loc[i, 'image'] = link
 
 # Save
-df.to_csv('hasil.csv', index=False)
+df.to_csv('Dataset jamu madura(with img).csv', index=False)
 
 print(df[['image']].head(15))

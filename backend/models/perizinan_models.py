@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from models.kabupaten_models import db
 
 class Perizinan(db.Model): 
     __tablename__ = "perizinan"
@@ -11,6 +9,6 @@ class Perizinan(db.Model):
 
     def to_dict(self):
         return {
-            "id_perizinan": self.id_jenis,
-            "nama_perizinan": self.nama_jenis
+            "id_perizinan": self.id_perizinan,
+            "nama_perizinan": self.nama_perizinan
         }

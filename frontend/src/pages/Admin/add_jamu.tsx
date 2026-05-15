@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavbarAdmin from '../../components/navbar_admin';
+import axios from 'axios'
+
+
 
 export default function AddJamu() {
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
+
+  const [option, setOptions] = useState({
+    produsen:[],
+    lokasiProduksi:[],
+    jenisjamu: [],
+    perizinan: [],
+    kabupaten:[]
+
+  })
 
   useEffect(() => {
     setMounted(true);

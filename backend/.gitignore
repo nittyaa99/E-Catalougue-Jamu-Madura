@@ -10,7 +10,7 @@
 *.csv
 *.xlsx
 *.xls
-*.db
+# *.db
 *.sqlite3
 
 # --- FILE EXCEL SEMENTARA (LOCK) ---

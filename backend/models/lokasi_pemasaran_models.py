@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from models.kabupaten_models import db
 
 class LokasiPemasaran(db.Model): 
     __tablename__ = "lokasi_pemasaran"

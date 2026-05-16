@@ -7,23 +7,30 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
 
-  // State untuk menampung list jamu dari database
+  // State untuk menampung list jamu asli dari database
   const [dataJamu, setDataJamu] = useState<any[]>([]);
 
-  // --- FUNGSI AMBIL DATA (GET) ---
+  // --- STATE FILTER (Sekarang pakai Array agar bisa pilih banyak sekaligus) ---
+  const [filterJenis, setFilterJenis] = useState<string[]>([]);
+  const [filterKabupaten, setFilterKabupaten] = useState<string[]>([]);
+
+  // --- FUNGSI AMBIL DATA (Ambil semua data sekali saja di awal) ---
   const ambilDataJamu = async () => {
     try {
-      // Pastikan endpoint ini sesuai dengan yang ada di Flask jamu_bp
       const response = await api.get("/jamu");
+      
+      console.log("=== CEK ISI DATA JAMU DARI FLASK ===");
+      console.log(response.data.data);
+      
       setDataJamu(response.data.data);
     } catch (error) {
       console.error("Gagal narik data jamu:", error);
     }
   };
-
+  
   useEffect(() => {
     setMounted(true);
-    ambilDataJamu();
+    ambilDataJamu(); // Cukup dipanggil sekali saat halaman terbuka
   }, []);
 
   const handleLogout = () => {
@@ -34,33 +41,57 @@ export default function Dashboard() {
     }
   };
 
-  // --- FUNGSI HAPUS DATA (DELETE) ---
   const handleHapus = async (id: number) => {
     const konfirmasi = window.confirm("Yakin mau hapus jamu ini Bang?");
     if (!konfirmasi) return;
 
     try {
-      // Endpoint delete sesuai id_jamu
       await api.delete(`/jamu/${id}`);
       alert("Jamu berhasil dihapus dari peradaban!");
-      ambilDataJamu(); // Refresh list setelah hapus
+      ambilDataJamu();
     } catch (error) {
       console.error("Gagal hapus data:", error);
       alert("Gagal menghapus data.");
     }
   };
 
+  // --- LOGIKA MULTI-TOGGLE FILTER ---
+  const handleToggleFilterJenis = (jenis: string) => {
+    setFilterJenis((prev) =>
+      prev.includes(jenis) ? prev.filter((item) => item !== jenis) : [...prev, jenis]
+    );
+  };
+
+  const handleToggleFilterKabupaten = (kabupaten: string) => {
+    setFilterKabupaten((prev) =>
+      prev.includes(kabupaten) ? prev.filter((item) => item !== kabupaten) : [...prev, kabupaten]
+    );
+  };
+
+  // --- MASTER DATA DROPDOWN (Tetap utuh tidak akan mengecil/hilang) ---
+  const daftarJenisUnik = Array.from(
+    new Set(dataJamu.map((item) => item.nama_jenis).filter(Boolean))
+  );
+  const daftarKabupatenUnik = Array.from(
+    new Set(dataJamu.map((item) => item.nama_kabupaten).filter(Boolean))
+  );
+
+  // --- PROSES PENYARINGAN REAL-TIME MULTIPLE CHOICE ---
+  const dataJamuTersering = dataJamu.filter((item) => {
+    // Jika filter kosong, loloskan semua. Jika diisi, harus ada di dalam list array filter
+    const cocokJenis = filterJenis.length > 0 ? filterJenis.includes(item.nama_jenis) : true;
+    const cocokKabupaten = filterKabupaten.length > 0 ? filterKabupaten.includes(item.nama_kabupaten) : true;
+    return cocokJenis && cocokKabupaten;
+  });
+
   return (
-    <div
-      className={`flex flex-col h-screen bg-[#FDFBF7] font-sans overflow-hidden transition-opacity duration-700 ${
-        mounted ? "opacity-100" : "opacity-0"
-      }`}
-    >
+    <div className={`flex flex-col h-screen bg-[#FDFBF7] font-sans overflow-hidden transition-opacity duration-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
       <NavbarAdmin onLogout={handleLogout} />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <aside className="w-56 h-full bg-[#F5F2EA] flex flex-col border-r border-[#E5DECD] shrink-0">
+          {/* Admin Profile */}
           <div className="flex items-center gap-3 px-5 py-6">
             <div className="w-12 h-12 rounded-full bg-black border-2 border-black flex items-center justify-center shrink-0">
               <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -73,6 +104,7 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Navigasi Utama */}
           <div className="px-3 mt-2">
             <button className="w-full bg-[#D68227] text-black font-bold rounded-lg py-2.5 px-4 flex items-center gap-3 shadow-md">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,10 +114,74 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="mt-auto px-4 pb-6">
+          {/* Info Total Jamu Terfilter */}
+          <div className="px-5 mt-4">
+            <p className="text-[12px] font-bold text-gray-700">
+              Menampilkan: <span className="text-[#D68227] font-extrabold">{dataJamuTersering.length}</span> / {dataJamu.length} Jamu
+            </p>
+          </div>
+
+          {/* --- SECTION FILTER MULTI-SELECT CHECKBOX --- */}
+          <div className="px-4 mt-4 flex flex-col gap-4 overflow-y-auto flex-1 pb-4 custom-sidebar-scroll">
+            <div className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider border-b border-[#E5DECD] pb-1">
+              Filter Data
+            </div>
+
+            {/* Filter Jenis Jamu (Bisa Pilih Banyak) */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold text-gray-700">Jenis Jamu</label>
+              <div className="max-h-28 overflow-y-auto border border-[#E5DECD] bg-white rounded-lg p-2 flex flex-col gap-1 shadow-inner">
+                {daftarJenisUnik.map((jenis) => (
+                  <label key={jenis} className="flex items-center gap-2 text-xs text-black cursor-pointer py-0.5 hover:bg-gray-50 px-1 rounded">
+                    <input
+                      type="checkbox"
+                      checked={filterJenis.includes(jenis)}
+                      onChange={() => handleToggleFilterJenis(jenis)}
+                      className="rounded border-gray-300 text-[#D68227] focus:ring-0 w-3.5 h-3.5"
+                    />
+                    <span className="truncate">{jenis}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter Asal Kabupaten (Bisa Pilih Banyak, misal Sampang & Bangkalan) */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold text-gray-700">Asal (Kabupaten)</label>
+              <div className="max-h-28 overflow-y-auto border border-[#E5DECD] bg-white rounded-lg p-2 flex flex-col gap-1 shadow-inner">
+                {daftarKabupatenUnik.map((kab) => (
+                  <label key={kab} className="flex items-center gap-2 text-xs text-black cursor-pointer py-0.5 hover:bg-gray-50 px-1 rounded">
+                    <input
+                      type="checkbox"
+                      checked={filterKabupaten.includes(kab)}
+                      onChange={() => handleToggleFilterKabupaten(kab)}
+                      className="rounded border-gray-300 text-[#D68227] focus:ring-0 w-3.5 h-3.5"
+                    />
+                    <span className="truncate">{kab}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Tombol Reset Filter */}
+            {(filterJenis.length > 0 || filterKabupaten.length > 0) && (
+              <button
+                onClick={() => {
+                  setFilterJenis([]);
+                  setFilterKabupaten([]);
+                }}
+                className="text-left text-[11px] text-[#A52A2A] font-bold hover:underline mt-1"
+              >
+                × Bersihkan Semua Filter
+              </button>
+            )}
+          </div>
+
+          {/* Logout Button */}
+          <div className="px-4 pb-6 mt-auto shrink-0">
             <button
               onClick={handleLogout}
-              className="w-full bg-[#CC0000] hover:bg-[#FF0404] text-white font-bold py-2.5 rounded-lg shadow-md transition-colors"
+              className="w-full bg-[#CC0000] hover:bg-[#FF0404] text-white font-bold py-2.5 rounded-lg shadow-md transition-colors text-sm"
             >
               Log out
             </button>
@@ -112,8 +208,8 @@ export default function Dashboard() {
 
             {/* GRID DATA JAMU */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {dataJamu.length > 0 ? (
-                dataJamu.map((item) => (
+              {dataJamuTersering.length > 0 ? (
+                dataJamuTersering.map((item) => (
                   <div
                     key={item.id_jamu}
                     className="bg-[#FCE6CF] rounded-xl pt-6 pb-4 px-4 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col gap-4 border border-[#F0D5BB]"
@@ -123,9 +219,13 @@ export default function Dashboard() {
                       <div className="w-14 h-14 rounded-full overflow-hidden bg-[#344F51] flex items-center justify-center shrink-0">
                         {item.image ? (
                           <img
-                            src={item.image}
+                            src={item.image.startsWith('http') ? item.image : `http://localhost:5000/static/uploads/${item.image}`}
                             alt={item.nama_jamu}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).onerror = null;
+                              (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=No+Image";
+                            }}
                           />
                         ) : (
                           <span className="text-white text-2xl font-bold">
@@ -173,13 +273,21 @@ export default function Dashboard() {
                     <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
                     <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
                   </svg>
-                  <p className="font-medium italic">Database masih kosong, Bang. Yuk tambah jamu dulu!</p>
+                  <p className="font-medium italic text-center text-sm">
+                    {dataJamu.length > 0 
+                      ? "Tidak ada jamu yang cocok dengan kriteria kombinasi filter, Bang." 
+                      : "Database masih kosong, Bang. Yuk tambah jamu dulu!"}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </main>
       </div>
+      <style>{`
+        .custom-sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb { background: #E5DECD; border-radius: 4px; }
+      `}</style>
     </div>
   );
 }

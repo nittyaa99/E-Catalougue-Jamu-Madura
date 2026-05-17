@@ -219,7 +219,7 @@ export default function Dashboard() {
                       <div className="w-14 h-14 rounded-full overflow-hidden bg-[#344F51] flex items-center justify-center shrink-0">
                         {item.image ? (
                           <img
-                            src={item.image.startsWith('http') ? item.image : `http://localhost:5000/static/uploads/${item.image}`}
+                            src={`http://localhost:5000/static/uploads/${item.image}`}
                             alt={item.nama_jamu}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -253,7 +253,12 @@ export default function Dashboard() {
                     {/* Tombol Aksi */}
                     <div className="flex justify-center gap-2 mt-auto pt-2">
                       <button
-                        onClick={() => navigate(`/admin/edit-jamu/${item.id_jamu}`)}
+                      type="button"
+                         onClick={() => {
+                          // console.log("Cek Data Item:", item);
+                          // console.log("Cek ID:", item.id_jamu);
+                          navigate(`/admin/edit-jamu/${item.id_jamu}`); // matikan dulu navigasinya
+                        }}
                         className="bg-[#FFD700] hover:bg-[#E6C200] text-black text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1 transition"
                       >
                         EDIT

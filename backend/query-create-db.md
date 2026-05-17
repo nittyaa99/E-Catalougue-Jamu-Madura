@@ -1,47 +1,35 @@
--- 1. Tabel Kabupaten (Referensi level terbawah untuk lokasi)
 CREATE TABLE kabupaten (
     id_kabupaten INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_kabupaten TEXT NOT NULL
+    nama_kabupaten TEXT
 );
-
--- 2. Tabel Jenis
+CREATE TABLE sqlite_sequence(name,seq);
 CREATE TABLE jenis (
     id_jenis INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_jenis TEXT NOT NULL
+    nama_jenis TEXT
 );
-
--- 3. Tabel Perizinan
 CREATE TABLE perizinan (
     id_perizinan INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_perizinan TEXT NOT NULL
+    nama_perizinan TEXT
 );
-
--- 4. Tabel Lokasi Pemasaran (Tabel Baru)
 CREATE TABLE lokasi_pemasaran (
     id_lokasi_pemasaran INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_lokasi_pemasaran TEXT NOT NULL
+    nama_lokasi_pemasaran TEXT
 );
-
--- 5. Tabel Produsen (Berelasi ke Kabupaten)
 CREATE TABLE produsen (
     id_produsen INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_produsen TEXT NOT NULL,
+    nama_produsen TEXT,
     id_kabupaten INTEGER,
     FOREIGN KEY (id_kabupaten) REFERENCES kabupaten(id_kabupaten)
 );
-
--- 6. Tabel Lokasi Produksi (Berelasi ke Kabupaten)
 CREATE TABLE lokasi_produksi (
     id_lokasi_produksi INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_lokasi TEXT NOT NULL,
+    nama_lokasi_produksi TEXT,
     id_kabupaten INTEGER,
     FOREIGN KEY (id_kabupaten) REFERENCES kabupaten(id_kabupaten)
 );
-
--- 7. Tabel Jamu (Pusat Relasi / Central Hub)
 CREATE TABLE jamu (
     id_jamu INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama_jamu TEXT NOT NULL,
+    nama_jamu TEXT,
     khasiat TEXT,
     kandungan TEXT,
     aturan_minum TEXT,
@@ -52,7 +40,7 @@ CREATE TABLE jamu (
     id_kabupaten INTEGER,
     id_perizinan INTEGER,
     id_lokasi_pemasaran INTEGER,
-
+    image TEXT,
     FOREIGN KEY (id_jenis) REFERENCES jenis(id_jenis),
     FOREIGN KEY (id_produsen) REFERENCES produsen(id_produsen),
     FOREIGN KEY (id_lokasi_produksi) REFERENCES lokasi_produksi(id_lokasi_produksi),

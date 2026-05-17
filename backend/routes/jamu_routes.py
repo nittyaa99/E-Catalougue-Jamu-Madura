@@ -7,18 +7,21 @@ jamu_bp = Blueprint('jamu', __name__)
 @jamu_bp.route('/jamu', methods=['GET'])
 @jwt_required()
 def get_jamu():
-    try:
-        data_jamu = Jamu.query.all()
-        
-        hasil_json = [item.to_dict() for item in data_jamu]
-
-        return jsonify({
-            "status": "success",
-            "message": "Data Jamu berhasil diambil",
-            "data": hasil_json
-        }), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    jenis = request.args.get('jenis')  # Ambil parameter jenis
+    kabupaten = request.args.get('kabupaten')  # Ambil parameter kabupaten
+    
+    query = Jamu.query
+    
+    # Filter berdasarkan jenis jika ada
+    if jenis:
+        query = query.filter_by(nama_jenis=jenis)
+    
+    # Filter berdasarkan kabupaten jika ada
+    if kabupaten:
+        query = query.filter_by(nama_kabupaten=kabupaten)
+    
+    data = query.all()
+    return jsonify({"data": [item.to_dict() for item in data]})
 
 # --- 2. INSERT (Tambah Jamu Baru - Banyak Input) ---
 @jamu_bp.route('/jamu', methods=['POST'])

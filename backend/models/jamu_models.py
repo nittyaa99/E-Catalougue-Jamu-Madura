@@ -1,4 +1,5 @@
 from models.kabupaten_models import db
+from models.jenis_models import JenisJamu  # ← Tambah import ini
 
 
 class Jamu(db.Model):
@@ -19,6 +20,10 @@ class Jamu(db.Model):
     id_perizinan = db.Column(db.Integer, db.ForeignKey("perizinan.id_perizinan"), nullable=True)
     id_lokasi_pemasaran = db.Column(db.Integer, db.ForeignKey("lokasi_pemasaran.id_lokasi_pemasaran"), nullable=True)
 
+    # ← TAMBAH RELATIONSHIP INI:
+    jenis_rel = db.relationship('JenisJamu', backref='jamu_list', lazy=True)
+    kabupaten_rel = db.relationship('Kabupaten', backref='jamu_list', lazy=True)
+
     def to_dict(self):
         return {
             "id_jamu": self.id_jamu,
@@ -34,4 +39,7 @@ class Jamu(db.Model):
             "id_kabupaten": self.id_kabupaten,
             "id_perizinan": self.id_perizinan,
             "id_lokasi_pemasaran": self.id_lokasi_pemasaran,
+            # ← UNCOMMENT INI:
+            "nama_jenis": self.jenis_rel.nama_jenis if self.jenis_rel else "Tanpa Jenis",
+            "nama_kabupaten": self.kabupaten_rel.nama_kabupaten if self.kabupaten_rel else "Lokal"
         }

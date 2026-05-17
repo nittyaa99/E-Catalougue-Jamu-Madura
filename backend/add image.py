@@ -8,7 +8,6 @@ df['image'] = ''
 
 # Array link image
 links = [
-    # 1-50
     "https://drive.google.com/file/d/1oSMox4P_1UFHogqFAKYgke2-jnhhZsSQ/view?usp=sharing",
     "https://drive.google.com/file/d/1NthUzAgwDMHfD86eSCEViCpuFLw0N-ml/view?usp=drive_link",
     "https://drive.google.com/file/d/1vRxfTLWhTBdwd28EzUL4zQFnofenH4je/view?usp=drive_link",
@@ -40,7 +39,7 @@ links = [
     "https://drive.google.com/file/d/1TMM03wfy-SC_9XBgPo3gPFzfQxMFfgR4/view?usp=sharing",
     "https://drive.google.com/file/d/1S-moR6ZZS7hVcTj8aFniHdgw4jvatHa0/view?usp=sharing",
     "https://drive.google.com/file/d/1m0jj8dhwhguh9q37HxGu4m7alg737OGA/view?usp=sharing",
-    "https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fmaduraindepth.com%2Fmadura-sari-jamu-tradisional-sejak-tahun-1997-diminati-masyarakat&ved=0CBYQjRxqFwoTCLCQ0pSOuZQDFQAAAAAdAAAAABAh&opi=89978449",
+    "https://drive.google.com/file/d/1m0jj8dhwhguh9q37HxGu4m7alg737OGA/view?usp=sharing",
     "https://drive.google.com/file/d/1oN4MXEX0rPlufJteuEMrZbmOTfW6rSd4/view?usp=sharing",
     "https://drive.google.com/file/d/1RUIvHEAi3CgPCuHS9xs11zPGLtrjWgEv/view?usp=drive_link",
     "https://drive.google.com/file/d/1H9W8UU1xHCYqvLdzXhyTDZiXvcZMi2m_/view?usp=sharing",

@@ -15,7 +15,7 @@ from models.produsen_models import Produsen
 from models.lokasi_produksi_models import LokasiProduksi
 from models.lokasi_pemasaran_models import LokasiPemasaran
 from models.jamu_models import Jamu 
-# from models.perizinan_models import Perizinan # Buka kalau sudah ada
+from models.perizinan_models import Perizinan # Buka kalau sudah ada
 
 # --- 3. IMPORT SEMUA BLUEPRINT ---
 from routes.login_routes import auth_bp 
@@ -25,6 +25,7 @@ from routes.lokasi_produksi_routes import lokasi_produksi_bp
 from routes.lokasi_pemasaran_routes import lokasi_pemasaran_bp
 from routes.produsen_routes import produsen_bp
 from routes.jamu_routes import jamu_bp
+from routes.perizinan_routes import perizinan_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -48,7 +49,7 @@ app.register_blueprint(lokasi_produksi_bp, url_prefix='/api')
 app.register_blueprint(lokasi_pemasaran_bp, url_prefix='/api')
 app.register_blueprint(produsen_bp, url_prefix='/api')
 app.register_blueprint(jamu_bp, url_prefix='/api')
-
+app.register_blueprint(perizinan_bp, url_prefix='/api')
 # --- 5. BUAT TABEL OTOMATIS ---
 with app.app_context():
     # Sekarang create_all() pasti kenal semua tabel karena sudah di-import di atas

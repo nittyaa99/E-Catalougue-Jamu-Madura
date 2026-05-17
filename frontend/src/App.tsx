@@ -19,6 +19,7 @@ import Recommendation from "./pages/user/Recommendation";
 import DetailProduk from "./pages/user/Detail_produk";
 import KeteranganJamu from "./pages/user/Keterangan_jamu";
 
+import EditJamu from "./pages/Admin/edit_jamu";
 const App: React.FC = () => {
   return (
     <Router>
@@ -29,6 +30,7 @@ const App: React.FC = () => {
         <Route path="/recommendation" element={<Recommendation />} />
         <Route path="/detail-produk" element={<DetailProduk />} />
         <Route path="/keterangan-jamu" element={<KeteranganJamu />} />
+        <Route path="/admin/edit-jamu/:id" element={<EditJamu />} />
 
         {/* Rute Admin (Gabungan dengan temanmu) */}
         <Route path="/4dm13n" element={<Login />} />

@@ -15,7 +15,7 @@ import DetailItem from "./pages/Admin/Detail_item";
 // Import User Pages (Kode milikmu)
 import UserDashboard from "./pages/user/Dashboard";
 import Catalog from "./pages/user/Catalog";
-import Recommendation from "./pages/user/Recommendation";
+import Recommendation from "./pages/user/Hasil_pencarian";
 import DetailProduk from "./pages/user/Detail_produk";
 import KeteranganJamu from "./pages/user/Keterangan_jamu";
 

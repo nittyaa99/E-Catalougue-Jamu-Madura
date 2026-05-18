@@ -1,257 +1,105 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
-// --- DATA DUMMY DETAIL PRODUK ---
-const detailedProducts = [
-  {
-    id: 1, name: "Jamu Pelancar Haid",
-    desc: "Minuman herbal yang membantu melancarkan siklus haid dan mengurangi ketidaknyamanan saat menstruasi.",
-    manfaat: ["Meredakan nyeri haid", "Melancarkan peredaran darah", "Anti-inflamasi"],
-    aturan: "Diminum 1 kali sehari, pagi atau siang hari",
-    harga: "Rp 15.000",
-    img: "https://images.unsplash.com/photo-1615486171448-4fb627d2c3be?w=150&h=150&fit=crop"
-  },
-  {
-    id: 2, name: "Beras Kencur",
-    desc: "Jamu tradisional berbahan beras dan kencur yang menyegarkan dan menambah energi.",
-    manfaat: ["Menambah stamina", "Mengurangi pegal", "Meningkatkan nafsu makan"],
-    aturan: "Diminum 1 kali sehari, pagi atau siang hari",
-    harga: "Rp 13.000",
-    img: "https://images.unsplash.com/photo-1599305090598-fe179d501227?w=150&h=150&fit=crop"
-  },
-  {
-    id: 3, name: "Kunyit Asam",
-    desc: "Minuman herbal dari kunyit dan asam jawa yang menyegarkan dan menyehatkan.",
-    manfaat: ["Meredakan nyeri haid", "Melancarkan peredaran darah", "Anti-inflamasi"],
-    aturan: "Diminum 1-2 kali sehari",
-    harga: "Rp 12.000",
-    img: "https://images.unsplash.com/photo-1628151012353-bd1fb9c74bca?w=150&h=150&fit=crop"
-  },
-  {
-    id: 4, name: "Sidomuncul JSH",
-    desc: "Mendetoks racun di saluran pencernaan.",
-    manfaat: ["Menetralkan Racun (Detoksifikasi)", "Mengatasi Masalah Pencernaan", "Meningkatkan Daya Tahan Tubuh"],
-    aturan: "Diminum saat hangat, 1-2 kali sehari",
-    harga: "Rp 15.000",
-    img: "" // Kosong
-  },
-  {
-    id: 5, name: "Pegal Linu",
-    desc: "Jamu untuk membantu meredakan nyeri otot dan pegal pada tubuh.",
-    manfaat: ["Mengurangi pegal", "Meredakan nyeri otot", "Melancarkan peredaran darah"],
-    aturan: "Diminum setelah aktivitas berat",
-    harga: "Rp 10.000",
-    img: "https://images.unsplash.com/photo-1608265386093-9b242ca91b6e?w=150&h=150&fit=crop"
-  },
-  {
-    id: 6, name: "Temulawak",
-    desc: "Jamu herbal dari temulawak yang baik untuk kesehatan hati dan pencernaan.",
-    manfaat: ["Menjaga kesehatan hati", "Meningkatkan nafsu makan", "Melancarkan pencernaan"],
-    aturan: "Diminum 1 kali sehari sebelum makan",
-    harga: "Rp 11.000",
-    img: "https://images.unsplash.com/photo-1615486511484-92e1720543bc?w=150&h=150&fit=crop"
-  },
-  {
-    id: 7, name: "Sehat Wanita",
-    desc: "Jamu herbal untuk menjaga kesehatan dan keseimbangan tubuh wanita.",
-    manfaat: ["Menjaga kesehatan reproduksi", "Menyeimbangkan hormon", "Menyegarkan tubuh"],
-    aturan: "Diminum secara rutin 1 kali sehari",
-    harga: "Rp 13.000",
-    img: "https://images.unsplash.com/photo-1556910115-467ea3f1d933?w=150&h=150&fit=crop"
-  },
-  {
-    id: 8, name: "Sehat Pria",
-    desc: "Jamu khusus untuk membantu menjaga stamina dan vitalitas pria.",
-    manfaat: ["Meningkatkan stamina", "Menjaga vitalitas", "Mengurangi kelelahan"],
-    aturan: "Diminum 1 kali sehari",
-    harga: "Rp 13.000",
-    img: "https://images.unsplash.com/photo-1564222256577-45e728f2c611?w=150&h=150&fit=crop"
-  },
-  {
-    id: 9, name: "Jahe Merah AMH",
-    desc: "Meningkatkan daya tahan tubuh serta meredakan gejala masuk angin seperti perut kembung dan mual.",
-    manfaat: ["Menghangatkan Tubuh", "Melancarkan Peredaran Darah", "Mengurangi Nyeri Sendi"],
-    aturan: "1-3 kali sehari, diseduh dengan 150ml air hangat",
-    harga: "Rp 14.000",
-    img: "" // Kosong
-  },
-  {
-    id: 10, name: "Kunci Sirih",
-    desc: "Jamu tradisional yang membantu menjaga kesehatan organ kewanitaan.",
-    manfaat: ["Menjaga kebersihan organ intim", "Mengurangi bau tidak sedap", "Menjaga kesehatan wanita"],
-    aturan: "Diminum 1 kali sehari",
-    harga: "Rp 10.000",
-    img: "https://images.unsplash.com/photo-1620888998522-8d76a742ce44?w=150&h=150&fit=crop"
-  }
-];
+export interface ProductDetailProps {
+  isOpen: boolean;
+  onClose: () => void;
+  product?: any; // Bisa disesuaikan dengan tipe data produk yang sebenarnya
+}
 
-const DetailProduk: React.FC = () => {
+const DetailProduk: React.FC<ProductDetailProps> = ({ isOpen, onClose, product }) => {
+  if (!isOpen) return null;
+
   return (
-    <>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Blurred overlay */}
+      <div 
+        className="absolute inset-0 bg-white/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out_forwards]"
+        onClick={onClose}
+      ></div>
+      
+      {/* Definisi Animasi Khusus untuk Modal */}
       <style>
         {`
-          .detail-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
           }
-          .detail-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-          }
-          .nav-btn {
-            transition: background-color 0.2s ease, transform 0.2s ease;
-          }
-          .nav-btn:hover {
-            background-color: #e0b020 !important;
-            transform: scale(1.05);
-          }
-          .price-btn {
-            transition: background-color 0.2s ease, transform 0.2s ease;
-          }
-          .price-btn:hover {
-            background-color: #a88312 !important;
-            transform: scale(1.03);
-          }
-          .page-num {
-            transition: color 0.2s ease;
-            cursor: pointer;
-          }
-          .page-num:hover {
-            color: #D4AF37;
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
           }
         `}
       </style>
 
-      <div style={{
-        backgroundColor: "#4f585e", // Latar belakang abu-abu gelap
-        minHeight: "100vh",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-        fontFamily: "'Inter', sans-serif",
-      }}>
-        
-        {/* HEADER */}
-        <header style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "30px 60px",
-        }}>
-          <div style={{ fontSize: "36px", fontWeight: "bold", fontFamily: "'Playfair Display', serif" }}>
-            JamuKita
-          </div>
-          <nav style={{ display: "flex", gap: "20px" }}>
-            <Link to="/" className="nav-btn" style={{
-              background: "#c59b15", color: "white", border: "none", padding: "10px 25px", 
-              borderRadius: "30px", fontWeight: "600", textDecoration: "none"
-            }}>Home</Link>
-            <Link to="/catalog" className="nav-btn" style={{
-              background: "#c59b15", color: "white", border: "none", padding: "10px 25px", 
-              borderRadius: "30px", fontWeight: "600", textDecoration: "none"
-            }}>Catalog</Link>
-          </nav>
-        </header>
-
-        {/* KONTEN UTAMA */}
-        <main style={{ flexGrow: 1, padding: "10px 60px 40px", display: "flex", flexDirection: "column" }}>
-          
-          <h1 style={{
-            fontSize: "42px", fontWeight: "bold", textAlign: "center", margin: "0 0 50px 0",
-            fontFamily: "'Playfair Display', serif"
-          }}>Detail Produk JamuKita</h1>
-
-          {/* GRID KARTU PRODUK (5 Kolom) */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "25px", marginBottom: "50px" }}>
-            {detailedProducts.map((product) => (
-              <div key={product.id} className="detail-card" style={{
-                backgroundColor: "#fdf3e1", // Warna krem/beige terang
-                borderRadius: "16px",
-                padding: "20px 15px",
-                color: "#222",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-              }}>
-                
-                {/* Header Kartu: Gambar & Judul */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "15px", minHeight: "65px" }}>
-                  {product.img ? (
-                    <img src={product.img} alt={product.name} style={{
-                      width: "65px", height: "65px", borderRadius: "10px", objectFit: "cover", flexShrink: 0
-                    }} />
-                  ) : (
-                    <div style={{
-                      width: "65px", height: "65px", borderRadius: "10px", backgroundColor: "#ccc", 
-                      flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center"
-                    }}>
-                      <span style={{fontSize:"10px", color:"#777"}}>No Image</span>
-                    </div>
-                  )}
-                  <div style={{
-                    fontSize: "15px", fontWeight: "bold", fontFamily: "'Playfair Display', serif", lineHeight: "1.2", textAlign: "center", flexGrow: 1
-                  }}>{product.name}</div>
-                </div>
-                
-                {/* Deskripsi Singkat */}
-                <div style={{ fontSize: "11px", textAlign: "center", lineHeight: "1.4", color: "#444", marginBottom: "15px" }}>
-                  {product.desc}
-                </div>
-
-                {/* Kotak Manfaat (Abu-abu) */}
-                <div style={{
-                  backgroundColor: "#8c949a", // Warna kotak abu-abu di dalam kartu
-                  borderRadius: "8px",
-                  padding: "10px",
-                  marginBottom: "15px",
-                  color: "#111", // Teks gelap
-                  fontSize: "10px",
-                }}>
-                  <strong style={{ display: "block", marginBottom: "5px", fontSize: "11px" }}>Manfaat:</strong>
-                  <ol style={{ margin: "0", paddingLeft: "15px", lineHeight: "1.5" }}>
-                    {product.manfaat.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ol>
-                </div>
-
-                {/* Aturan Minum */}
-                <div style={{ fontSize: "10px", textAlign: "center", color: "#444", fontStyle: "italic", marginBottom: "20px" }}>
-                  {product.aturan}
-                </div>
-
-                {/* Tombol Harga (Didorong ke bawah) */}
-                <div style={{ marginTop: "auto", textAlign: "center" }}>
-                  <button className="price-btn" style={{
-                    backgroundColor: "#c59b15",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "20px",
-                    padding: "8px 25px",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    width: "80%"
-                  }}>
-                    {product.harga}
-                  </button>
-                </div>
-
+      {/* Modal Content */}
+      <div className="relative z-10 w-full max-w-[950px] bg-[#d9d9d9] rounded-[20px] p-6 sm:p-10 shadow-2xl flex flex-col md:flex-row min-h-[500px] animate-[modalPop_0.4s_ease-out_forwards]">
+         
+         {/* Left Side */}
+         <div className="w-full md:w-[45%] flex flex-col relative md:pr-8 md:border-r border-gray-400 mb-8 md:mb-0">
+            <button 
+              onClick={onClose}
+              className="self-start bg-[#b58e1b] text-white px-8 py-2 rounded-full font-semibold hover:bg-[#9a7815] transition-colors shadow-md text-[15px]"
+            >
+              Kembali
+            </button>
+            
+            <div className="mt-8 w-full flex-grow flex items-center justify-center">
+               {/* Product Image - Karena gambar spesifik tidak ada, pakai dummy desain yang mirip */}
+               <div className="w-full aspect-square max-w-[400px] bg-gradient-to-b from-yellow-100 to-orange-400 rounded-[24px] overflow-hidden shadow-lg relative flex flex-col items-center justify-center p-3 text-center border-[4px] border-orange-300">
+                   <span className="text-red-600 font-black text-[28px] leading-tight mb-2">GALIAN RAPET</span>
+                   <span className="text-red-600 font-black text-[16px] leading-tight mb-4">SARI RAPET (KAPSUL)</span>
+                   <div className="w-24 h-32 bg-black rounded-xl flex flex-col items-center justify-center border-2 border-yellow-500 shadow-xl">
+                      <span className="text-yellow-500 text-[12px] font-bold mt-1 leading-tight px-1">Jamu Tradisional</span>
+                   </div>
+               </div>
+            </div>
+         </div>
+         
+         {/* Right Side */}
+         <div className="w-full md:w-[55%] md:pl-8 flex flex-col justify-center">
+            <h2 className="text-[28px] sm:text-[34px] font-bold text-center mb-6 leading-tight text-[#222]">
+              Jamu abang empot<br/>pasti suka
+            </h2>
+            
+            <table className="w-full text-[13px] sm:text-[14px] bg-[#3e3e3e] text-[#f5f5f5] rounded-[6px] overflow-hidden mb-8 shadow-md">
+              <tbody>
+                <tr className="border-b border-[#555]">
+                  <td className="p-3 sm:p-4 w-[130px] font-medium border-r border-[#555]">Nama Jamu</td>
+                  <td className="p-3 sm:p-4">Jamu abang empot pasti suka asal mau minum</td>
+                </tr>
+                <tr className="border-b border-[#555]">
+                  <td className="p-3 sm:p-4 font-medium border-r border-[#555]">Asal</td>
+                  <td className="p-3 sm:p-4">Bangkalan</td>
+                </tr>
+                <tr className="border-b border-[#555]">
+                  <td className="p-3 sm:p-4 font-medium border-r border-[#555]">Produsen</td>
+                  <td className="p-3 sm:p-4">PT Madura Sejahtera bersama tretan</td>
+                </tr>
+                <tr className="border-b border-[#555]">
+                  <td className="p-3 sm:p-4 font-medium border-r border-[#555]">Pemasaran</td>
+                  <td className="p-3 sm:p-4">Pasar senin bangkalan, sampang kota, pamekasan kota dan sumenep kota</td>
+                </tr>
+                <tr className="border-b border-[#555]">
+                  <td className="p-3 sm:p-4 font-medium border-r border-[#555]">Jenis</td>
+                  <td className="p-3 sm:p-4">Cair</td>
+                </tr>
+                <tr>
+                  <td className="p-3 sm:p-4 font-medium border-r border-[#555]">Aturan minum</td>
+                  <td className="p-3 sm:p-4">Tidak ada</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <div className="flex flex-col">
+              <span className="font-bold text-[#222] mb-3 text-[16px]">Khasiat :</span>
+              <div className="bg-[#cdcdcd] rounded-[15px] p-5 text-[13px] sm:text-[14px] text-[#333] text-center leading-relaxed">
+                Jamu Mantap Mama Suka dipercaya dapat membantu menjaga daya tahan tubuh, menghangatkan badan, menjaga stamina dan kebugaran, membantu melancarkan peredaran darah, meredakan pegal dan capek, menjaga kesehatan pria, membantu meningkatkan nafsu makan, serta membuat tubuh terasa lebih segar dan fit untuk menjalani aktivitas sehari-hari
               </div>
-            ))}
-          </div>
-
-          {/* PAGINASI BAWAH */}
-          <div style={{ display: "flex", justifyContent: "center", gap: "20px", alignItems: "center", fontWeight: "bold", fontSize: "16px", marginTop: "auto" }}>
-            <span className="page-num">1</span>
-            <span className="page-num">2</span>
-            <span className="page-num">3</span>
-            <span className="page-num">4</span>
-            <span className="page-num">5</span>
-            <span className="page-num">6</span>
-            <span className="page-num">7</span>
-            <span className="page-num" style={{ marginLeft: "10px" }}>Berikutnya</span>
-          </div>
-
-        </main>
+            </div>
+         </div>
+         
       </div>
-    </>
+    </div>
   );
 };
 

@@ -4,6 +4,7 @@ import NavbarUser from '../../components/navbar_user';
 import FooterUser from '../../components/footer_user';
 import bgImageRight from './Background kanan .png';
 import bgImageLeft from './Background hadap kiri.png';
+import DetailProduk from './Detail_produk';
 
 const UserDashboard: React.FC = () => {
   const [keluhan, setKeluhan] = useState("");
@@ -15,11 +16,20 @@ const UserDashboard: React.FC = () => {
   // State untuk membuka/menutup filter dropdown
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  // State untuk Modal Detail Produk
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+
+  const handleCardClick = (product: any) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
   // Data dummy diperbanyak untuk menguji pagination (32 item = 4 halaman)
   const allCards = Array(32).fill(null);
 
   // State untuk Pagination
-  const itemsPerPage = 10;
+  const itemsPerPage = 12;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(allCards.length / itemsPerPage);
 
@@ -118,6 +128,7 @@ const UserDashboard: React.FC = () => {
 
       {/* ================= CATALOG SECTION ================= */}
       <div 
+        id="catalog-section"
         className="min-h-screen relative flex flex-col bg-cover bg-center bg-no-repeat py-16 pb-32"
         style={{ backgroundImage: `url('${bgImageLeft}')` }}
       >
@@ -139,7 +150,7 @@ const UserDashboard: React.FC = () => {
                   ${isFilterOpen ? 'bg-[#34C759] rounded-[20px] w-[280px] p-6 shadow-2xl' : 'bg-transparent w-auto p-0'}
                 `}
               >
-                 {/* Header Panel (Selalu Terlihat) */}
+                 {/* Header Panell */}
                  <div className={`flex items-center justify-end gap-6 ${isFilterOpen ? 'mb-6' : 'mb-0'}`}>
                     <button 
                       onClick={scrollToSearch}
@@ -148,7 +159,7 @@ const UserDashboard: React.FC = () => {
                       Cari
                     </button>
                     
-                    {/* Hamburger Button dengan animasi rotasi vertikal/horizontal */}
+                    {/* rotasi vertikal/horizontal */}
                     <button 
                       onClick={() => setIsFilterOpen(!isFilterOpen)}
                       className="flex justify-center items-center focus:outline-none"
@@ -215,11 +226,12 @@ const UserDashboard: React.FC = () => {
                {currentCards.map((_, idx) => (
                   <div 
                     key={`${currentPage}-${idx}`} 
-                    className="hide-animate bg-[#eef6ec] w-full max-w-[280px] rounded-[15px] p-5 shadow-md flex flex-col items-center hover:scale-105 hover:shadow-xl" 
+                    className="hide-animate bg-[#eef6ec] w-full max-w-[310px] rounded-[15px] p-3 shadow-md flex flex-col items-center hover:scale-105 hover:shadow-xl cursor-pointer" 
                     style={{transitionDelay: `${idx * 0.05}s`}}
+                    onClick={() => handleCardClick({ id: idx, namaJamu: `Galian Rapet ${(currentPage - 1) * itemsPerPage + idx + 1}` })}
                   >
                     {/* Placeholder Gambar Produk yang Diperbesar */}
-                    <div className="w-full aspect-[4/5] bg-gradient-to-b from-yellow-100 to-orange-400 rounded-xl shadow-inner overflow-hidden mb-5 relative flex flex-col items-center justify-center p-3 text-center border-[3px] border-orange-300">
+                    <div className="w-full aspect-[4/5] bg-gradient-to-b from-yellow-100 to-orange-400 rounded-xl shadow-inner overflow-hidden mb-5 relative flex flex-col items-center justify-center p-2 text-center border-[3px] border-orange-300">
                        <span className="text-red-600 font-black text-[18px] leading-tight mb-2">GALIAN RAPET</span>
                        <span className="text-red-600 font-black text-[12px] leading-tight mb-4">SARI RAPET (KAPSUL)</span>
                        <div className="w-20 h-28 bg-black rounded-lg flex flex-col items-center justify-center border-2 border-yellow-500 shadow-xl">
@@ -233,9 +245,6 @@ const UserDashboard: React.FC = () => {
                           <h3 className="text-gray-800 font-bold text-[20px] mb-1">Galian Rapet {(currentPage - 1) * itemsPerPage + idx + 1}</h3>
                           <p className="text-gray-500 text-[14px] font-medium mb-5">Kapsul</p>
                        </div>
-                       <button className="w-full bg-[#E5D57B] hover:bg-[#d4c361] text-[#333] font-bold py-3 rounded-[12px] text-[15px] transition-colors shadow-sm">
-                          Lihat Detail
-                       </button>
                     </div>
                  </div>
               ))}
@@ -297,6 +306,13 @@ const UserDashboard: React.FC = () => {
 
       {/* ================= FOOTER ================= */}
       <FooterUser />
+
+      {/* Modal Detail Produk */}
+      <DetailProduk 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        product={selectedProduct} 
+      />
 
       {/* Definisi Animasi Khusus */}
       <style>

@@ -21,11 +21,31 @@ const NavbarUser: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fungsi pembantu untuk mengecek halaman aktif
-  const isActive = (path: string) => {
-    return location.pathname.toLowerCase() === path.toLowerCase() 
-           ? 'bg-[#967515] scale-105 shadow-lg' 
-           : 'bg-[#b58e1b] hover:bg-[#a37f18] hover:scale-105 hover:shadow-lg';
+  const [activeSection, setActiveSection] = useState('home');
+
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    if (location.pathname !== '/') {
+      window.location.href = '/';
+      return;
+    }
+
+    if (sectionId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (sectionId === 'catalog') {
+      const el = document.getElementById('catalog-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (sectionId === 'footer') {
+      const el = document.querySelector('footer');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
+  const getBtnStyle = (sectionId: string) => {
+    return activeSection === sectionId 
+           ? 'bg-[#967515] scale-105 shadow-lg cursor-pointer' 
+           : 'bg-[#b58e1b] hover:bg-[#a37f18] hover:scale-105 hover:shadow-lg cursor-pointer';
   };
 
   return (
@@ -66,35 +86,35 @@ const NavbarUser: React.FC = () => {
         
         {/* Kiri: Logo */}
         <Link to="/" className="flex items-center gap-4 group">
-          <div className="w-[65px] h-[75px] overflow-hidden hover-pulse transition-all duration-300">
+          <div className="w-[85px] h-[95px] overflow-hidden hover-pulse transition-all duration-300">
             <img src={logoJamu} alt="Logo Jamu Madura" className="w-full h-full object-contain drop-shadow-md" />
           </div>
           <div className="flex flex-col text-left font-serif text-[#333]">
-            <span className="text-[26px] leading-[1.1] drop-shadow-sm transition-colors group-hover:text-[#b58e1b]">JamuMadura</span>
-            <span className="text-[26px] leading-[1.1] text-center ml-2 drop-shadow-sm transition-colors group-hover:text-[#b58e1b]">Kita</span>
+            <span className="text-[32px] leading-[1.1] drop-shadow-sm transition-colors group-hover:text-[#b58e1b]">JamuMadura</span>
+            <span className="text-[32px] leading-[1.1] text-center ml-2 drop-shadow-sm transition-colors group-hover:text-[#b58e1b]">Kita</span>
           </div>
         </Link>
 
         {/* Tengah: Tautan Navigasi (Desktop) */}
         <div className="hidden md:flex items-center gap-6">
-          <Link 
-            to="/" 
-            className={`px-8 py-2.5 rounded-full text-white font-medium transition-all duration-300 ${isActive('/')}`}
+          <button 
+            onClick={() => scrollToSection('home')}
+            className={`px-8 py-2.5 rounded-full text-white font-medium transition-all duration-300 ${getBtnStyle('home')}`}
           >
             Home
-          </Link>
-          <Link 
-            to="/Catalog" 
-            className={`px-8 py-2.5 rounded-full text-white font-medium transition-all duration-300 ${isActive('/catalog')}`}
+          </button>
+          <button 
+            onClick={() => scrollToSection('catalog')}
+            className={`px-8 py-2.5 rounded-full text-white font-medium transition-all duration-300 ${getBtnStyle('catalog')}`}
           >
             Catalog
-          </Link>
-          <Link 
-            to="/tentang-kami" 
-            className={`px-8 py-2.5 rounded-full text-white font-medium transition-all duration-300 ${isActive('/tentang-kami')}`}
+          </button>
+          <button 
+            onClick={() => scrollToSection('footer')}
+            className={`px-8 py-2.5 rounded-full text-white font-medium transition-all duration-300 ${getBtnStyle('footer')}`}
           >
-            Tentang kami
-          </Link>
+            Hubungi 
+          </button>
         </div>
 
         {/* Tombol Menu Mobile */}
@@ -119,27 +139,24 @@ const NavbarUser: React.FC = () => {
       <div 
         className={`md:hidden absolute top-[90px] left-0 w-full bg-white/95 backdrop-blur-md shadow-xl z-40 flex flex-col items-center py-6 gap-4 transition-all duration-500 ease-in-out origin-top transform ${isMobileMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}
       >
-        <Link 
-          to="/" 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className={`w-3/4 text-center px-8 py-3 rounded-full text-white font-medium transition-all duration-300 ${isActive('/')}`}
+        <button 
+          onClick={() => scrollToSection('home')}
+          className={`w-3/4 text-center px-8 py-3 rounded-full text-white font-medium transition-all duration-300 ${getBtnStyle('home')}`}
         >
           Home
-        </Link>
-        <Link 
-          to="/Catalog" 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className={`w-3/4 text-center px-8 py-3 rounded-full text-white font-medium transition-all duration-300 ${isActive('/catalog')}`}
+        </button>
+        <button 
+          onClick={() => scrollToSection('catalog')}
+          className={`w-3/4 text-center px-8 py-3 rounded-full text-white font-medium transition-all duration-300 ${getBtnStyle('catalog')}`}
         >
           Catalog
-        </Link>
-        <Link 
-          to="/tentang-kami" 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className={`w-3/4 text-center px-8 py-3 rounded-full text-white font-medium transition-all duration-300 ${isActive('/tentang-kami')}`}
+        </button>
+        <button 
+          onClick={() => scrollToSection('footer')}
+          className={`w-3/4 text-center px-8 py-3 rounded-full text-white font-medium transition-all duration-300 ${getBtnStyle('footer')}`}
         >
-          Tentang kami
-        </Link>
+          Hubungi
+        </button>
       </div>
     </>
   );

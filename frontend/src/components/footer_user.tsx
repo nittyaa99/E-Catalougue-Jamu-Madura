@@ -53,12 +53,12 @@ const FooterUser: React.FC = () => {
         {/* Logo and Title */}
         <div className="hide-animate-footer flex items-center gap-5 mb-8" style={{transitionDelay: '0.2s'}}>
           {/* Actual Logo */}
-          <div className="w-[60px] sm:w-[70px] h-[60px] sm:h-[70px] bg-[#E8E8E8] rounded-[20px] flex items-center justify-center shadow-inner overflow-hidden border border-gray-100">
+          <div className="w-[80px] sm:w-[100px] h-[80px] sm:h-[100px] bg-[#E8E8E8] rounded-[20px] flex items-center justify-center shadow-inner overflow-hidden border border-gray-100">
             <img src={logoJamu} alt="Jamu Madura Logo" className="w-[80%] h-[80%] object-contain" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="font-serif font-bold text-[28px] sm:text-[32px] text-gray-800 leading-tight tracking-tight">JamuMadura</span>
-            <span className="font-serif font-bold text-[28px] sm:text-[32px] text-gray-800 leading-tight tracking-tight -mt-2">Kita</span>
+            <span className="font-serif font-bold text-[36px] sm:text-[42px] text-gray-800 leading-tight tracking-tight">JamuMadura</span>
+            <span className="font-serif font-bold text-[36px] sm:text-[42px] text-gray-800 leading-tight tracking-tight -mt-2">Kita</span>
           </div>
         </div>
 
@@ -69,7 +69,10 @@ const FooterUser: React.FC = () => {
         </p>
 
         {/* Contact Us Button */}
-        <button className="bg-[#007BFF] hover:bg-blue-600 text-white font-medium py-3 px-10 rounded-full transition-colors mb-10 shadow-md">
+        <button 
+          onClick={() => window.open('https://wa.me/6287889817650', '_blank')}
+          className="bg-[#007BFF] hover:bg-blue-600 text-white font-medium py-3 px-10 rounded-full transition-colors mb-10 shadow-md"
+        >
           Contact Us
         </button>
       </div>

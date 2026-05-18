@@ -12,7 +12,7 @@ export default function Dashboard() {
 
   // --- STATE FILTER (Sekarang pakai Array agar bisa pilih banyak sekaligus) ---
   const [filterJenis, setFilterJenis] = useState<string[]>([]);
-  const [filterKabupaten, setFilterKabupaten] = useState<string[]>([]);
+  const [filterKabupaten, setFilterKabupaten] = useState<string[]>(["sampang"]);
 
   // --- FUNGSI AMBIL DATA (Ambil semua data sekali saja di awal) ---
   const ambilDataJamu = async () => {

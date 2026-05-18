@@ -221,9 +221,6 @@ export default function EditJamu() {
 
       {/* SUB-HEADER */}
       <div className="bg-[#2a4447] text-white px-8 py-3 flex gap-8 items-center text-sm font-medium">
-        <button type="button" className="flex items-center gap-2 opacity-80 hover:opacity-100 transition">
-          <span>➕</span> Tambah item
-        </button>
         <button type="button" className="flex items-center gap-2 border-b-2 border-amber-500 pb-1">
           <span>📝</span> Edit item
         </button>

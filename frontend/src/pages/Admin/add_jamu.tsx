@@ -1,26 +1,121 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavbarAdmin from '../../components/navbar_admin';
-import axios from 'axios'
-
-
+import api from '../../api/axiosConfig'; // ✅ Menggunakan Axios Instance bawaan proyek
 
 export default function AddJamu() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [mounted, setMounted] = useState(false);
 
-  const [option, setOptions] = useState({
-    produsen:[],
-    lokasiProduksi:[],
+  // 1. STATE UNTUK MENAMPUNG INPUT DATA USER
+  const [formData, setFormData] = useState({
+    nama_jamu: '',
+    khasiat: '',
+    kandungan: '',
+    aturan_minum: '',
+    efek_samping: '',
+    id_jenis: '',
+    id_produsen: '',
+    id_lokasi_produksi: '',
+    id_kabupaten: '',
+    id_perizinan: '',
+    image: null
+  });
+
+  // State untuk nama file gambar yang dipilih (untuk estetika UI)
+  const [imageName, setImageName] = useState('Belum ada file yang dipilih');
+
+  // 2. STATE UNTUK MENAMPUNG DATA DROPDOWN DARI BACKEND
+  const [options, setOptions] = useState({
+    produsen: [],
+    lokasiProduksi: [],
     jenisjamu: [],
     perizinan: [],
-    kabupaten:[]
+    kabupaten: []
+  });
 
-  })
-
+  // 3. MEMUAT DATA OPSIONAL DROPDOWN DARI API FLASK
   useEffect(() => {
     setMounted(true);
+    
+    const fetchDropdownOptions = async () => {
+      try {
+        // 🔥 PERBAIKAN: Tembak langsung menggunakan 'api' tanpa perlu set token manual lagi
+        const [resJenis, resProdusen, resLokasi, resKabupaten, resPerizinan] = await Promise.all([
+          api.get('/jenis'),
+          api.get('/produsen'),
+          api.get('/lokasi_produksi'),
+          api.get('/kabupaten'),
+          api.get('/perizinan')
+        ]);
+
+        setOptions({
+          jenisjamu: resJenis.data.data || [],
+          produsen: resProdusen.data.data || [],
+          lokasiProduksi: resLokasi.data.data || [],
+          kabupaten: resKabupaten.data.data || [],
+          perizinan: resPerizinan.data.data || []
+        });
+      } catch (error) {
+        console.error("Gagal memuat data master opsi dropdown:", error);
+      }
+    };
+
+    fetchDropdownOptions();
   }, []);
+
+  // HANDLER PERUBAHAN INPUT TEKS & DROPDOWN
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // HANDLER PILIH FILE GAMBAR
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, image: file }));
+      setImageName(file.name);
+    }
+  };
+
+  // 4. FUNGSI UTAMA: MENYIMPAN DATA JAMU BARU KE BACKEND VIA MULTIPART/FORM-DATA
+  const handleSimpan = async (e) => {
+    e.preventDefault();
+
+    if (!formData.nama_jamu) {
+      alert("Nama jamu wajib diisi ya, Bang!");
+      return;
+    }
+
+    try {
+      const payload = new FormData();
+      // Otomatis membungkus seluruh key state ke dalam objek FormData
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          payload.append(key, formData[key]);
+        }
+      });
+
+      console.log("Mendaftarkan item jamu baru...");
+      
+      // 🔥 PERBAIKAN: Tembak rute pakai 'api' dan cukup set header multipart-nya saja
+      const response = await api.post('/jamu', payload, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.status === 201 || response.data.status === 'success') {
+        alert('Jamu baru berhasil didaftarkan, Bang!');
+        navigate('/dashboard_4dm13n');
+      }
+    } catch (error) {
+      console.error("Detail error insert:", error);
+      alert("Gagal menyimpan data jamu baru. Silakan cek kembali kelengkapan data atau token Anda.");
+    }
+  };
 
   const handleLogout = () => {
     const konfirmasi = window.confirm("Yakin mau logout, Bang?");
@@ -93,8 +188,12 @@ export default function AddJamu() {
                 <label className="text-black font-bold text-sm font-serif">Nama jamu</label>
                 <input 
                   type="text" 
+                  name="nama_jamu"
+                  value={formData.nama_jamu}
+                  onChange={handleChange}
                   placeholder="Nama jamu" 
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[#D68227] focus:ring-1 focus:ring-[#D68227]"
+                  required
                 />
               </div>
 
@@ -103,12 +202,20 @@ export default function AddJamu() {
                 <div className="flex flex-col gap-1">
                   <label className="text-black font-bold text-sm font-serif">Khasiat</label>
                   <textarea 
+                    name="khasiat"
+                    value={formData.khasiat}
+                    onChange={handleChange}
+                    placeholder="Tulis khasiat jamu di sini..."
                     className="w-full h-32 rounded-md bg-[#D68227] text-white placeholder-white/70 border-none p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-600 shadow-inner"
                   ></textarea>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-black font-bold text-sm font-serif">Kandungan</label>
                   <textarea 
+                    name="kandungan"
+                    value={formData.kandungan}
+                    onChange={handleChange}
+                    placeholder="Tulis bahan kandungan jamu di sini..."
                     className="w-full h-32 rounded-md bg-[#D68227] text-white placeholder-white/70 border-none p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-600 shadow-inner"
                   ></textarea>
                 </div>
@@ -119,6 +226,9 @@ export default function AddJamu() {
                 <div className="flex flex-col gap-1">
                   <label className="text-black font-bold text-sm font-serif">Aturan Minum</label>
                   <textarea 
+                    name="aturan_minum"
+                    value={formData.aturan_minum}
+                    onChange={handleChange}
                     placeholder="ketik disini"
                     className="w-full h-16 rounded-md bg-white border border-gray-300 p-3 text-sm resize-none focus:outline-none focus:border-[#D68227] focus:ring-1 focus:ring-[#D68227]"
                   ></textarea>
@@ -126,6 +236,9 @@ export default function AddJamu() {
                 <div className="flex flex-col gap-1">
                   <label className="text-black font-bold text-sm font-serif">Efek Samping</label>
                   <textarea 
+                    name="efek_samping"
+                    value={formData.efek_samping}
+                    onChange={handleChange}
                     placeholder="ketik disini"
                     className="w-full h-16 rounded-md bg-white border border-gray-300 p-3 text-sm resize-none focus:outline-none focus:border-[#D68227] focus:ring-1 focus:ring-[#D68227]"
                   ></textarea>
@@ -141,24 +254,16 @@ export default function AddJamu() {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </div>
                     <select 
-                      multiple
+                      name="id_produsen"
+                      size="5"
+                      value={formData.id_produsen}
+                      onChange={handleChange}
                       className="flex-1 w-full bg-transparent text-white border-none px-2 pb-3 text-[13px] font-medium focus:outline-none overflow-y-auto custom-scrollbar appearance-none text-center"
                     >
-                      <option className="py-1">Madura Sari</option>
-                      <option className="py-1">Jamu Tradisional Madura</option>
-                      <option className="py-1">Jamu Assegaf</option>
-                      <option className="py-1">Jamu Intan</option>
-                      <option className="py-1">Sari Madu</option>
-                      <option className="py-1">Firdaus Kurnia Indah</option>
-                      <option className="py-1">Kampung Paseraman Kamal</option>
-                      <option className="py-1">Njonja Bolan</option>
-                      <option className="py-1">Jamu Pusaka Kraton Cakraningrat</option>
-                      <option className="py-1">Jamu Putri Bangkalan</option>
-                      <option className="py-1">Mustika Madura</option>
-                      <option className="py-1">TOKO NUR</option>
-                      <option className="py-1">TOKO BU EMA</option>
-                      <option className="py-1">Warda</option>
-                      <option className="py-1">TOKO ANGGREK</option>
+                      <option value="" className="text-gray-400">Pilih Produsen</option>
+                      {options.produsen.map((item) => (
+                        <option key={item.id_produsen} value={item.id_produsen} className="py-1 text-black bg-white md:bg-transparent md:text-white">{item.nama_produsen}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -170,20 +275,16 @@ export default function AddJamu() {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </div>
                     <select 
-                      multiple
+                      name="id_lokasi_produksi"
+                      size="5"
+                      value={formData.id_lokasi_produksi}
+                      onChange={handleChange}
                       className="flex-1 w-full bg-transparent text-white border-none px-2 pb-3 text-[13px] font-medium focus:outline-none overflow-y-auto custom-scrollbar appearance-none text-center"
                     >
-                      <option className="py-1">JL Pahlawan 21 Sampang</option>
-                      <option className="py-1">BURNEH</option>
-                      <option className="py-1">Klobungan Jeddih</option>
-                      <option className="py-1">Jl. Ki Lemur Duwur Bangkalan</option>
-                      <option className="py-1">Bancaran</option>
-                      <option className="py-1">Jl.Jokotole No..20</option>
-                      <option className="py-1">Jl.Jokotole No..21</option>
-                      <option className="py-1">Jl.Jokotole No..22</option>
-                      <option className="py-1">Jl.Jokotole No..23</option>
-                      <option className="py-1">Jl. Kabupaten, Gladak Anyar Pamekasan</option>
-                      <option className="py-1">Jl.Anggrek, Lingkungan Delama</option>
+                      <option value="" className="text-gray-400">Pilih Lokasi</option>
+                      {options.lokasiProduksi.map((item) => (
+                        <option key={item.id_lokasi_produksi} value={item.id_lokasi_produksi} className="py-1 text-black bg-white md:bg-transparent md:text-white">{item.nama_lokasi}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -198,15 +299,16 @@ export default function AddJamu() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </div>
                     <select 
-                      multiple
+                      name="id_jenis"
+                      size="3"
+                      value={formData.id_jenis}
+                      onChange={handleChange}
                       className="flex-1 w-full bg-transparent text-white border-none px-2 pb-2 text-[13px] font-medium focus:outline-none overflow-y-auto custom-scrollbar appearance-none text-center"
                     >
-                      <option className="py-1">Pil</option>
-                      <option className="py-1">Cair</option>
-                      <option className="py-1">Serbuk</option>
-                      <option className="py-1">Kapsul</option>
-                      <option className="py-1">Selai</option>
-                      <option className="py-1">Krim</option>
+                      <option value="" className="text-gray-400">Pilih Jenis</option>
+                      {options.jenisjamu.map((item) => (
+                        <option key={item.id_jenis} value={item.id_jenis} className="py-1 text-black bg-white md:bg-transparent md:text-white">{item.nama_jenis}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -218,13 +320,16 @@ export default function AddJamu() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </div>
                     <select 
-                      multiple
+                      name="id_perizinan"
+                      size="3"
+                      value={formData.id_perizinan}
+                      onChange={handleChange}
                       className="flex-1 w-full bg-transparent text-white border-none px-2 pb-2 text-[13px] font-medium focus:outline-none overflow-y-auto custom-scrollbar appearance-none text-center"
                     >
-                      <option className="py-1">P-IRT</option>
-                      <option className="py-1">BPOM</option>
-                      <option className="py-1">KEMENKES</option>
-                      <option className="py-1">TDI & UKOT</option>
+                      <option value="" className="text-gray-400">Pilih Izin</option>
+                      {options.perizinan.map((item) => (
+                        <option key={item.id_perizinan} value={item.id_perizinan} className="py-1 text-black bg-white md:bg-transparent md:text-white">{item.nama_perizinan}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -236,13 +341,16 @@ export default function AddJamu() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </div>
                     <select 
-                      multiple
+                      name="id_kabupaten"
+                      size="3"
+                      value={formData.id_kabupaten}
+                      onChange={handleChange}
                       className="flex-1 w-full bg-transparent text-white border-none px-2 pb-2 text-[13px] font-medium focus:outline-none overflow-y-auto custom-scrollbar appearance-none text-center"
                     >
-                      <option className="py-1">Bangkalan</option>
-                      <option className="py-1">Sampang</option>
-                      <option className="py-1">Pamekasan</option>
-                      <option className="py-1">Sumenep</option>
+                      <option value="" className="text-gray-400">Pilih Kabupaten</option>
+                      {options.kabupaten.map((item) => (
+                        <option key={item.id_kabupaten} value={item.id_kabupaten} className="py-1 text-black bg-white md:bg-transparent md:text-white">{item.nama_kabupaten}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -251,14 +359,30 @@ export default function AddJamu() {
               {/* Row 6: Upload Gambar */}
               <div className="flex flex-col gap-1 mt-2">
                 <label className="text-black font-bold text-sm font-serif">Upload Gambar</label>
+                
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+
                 <div className="bg-white rounded-md border border-gray-300 p-2 flex items-center gap-3">
-                  <button className="bg-[#E5E7EB] hover:bg-gray-300 text-gray-700 text-xs font-semibold py-1.5 px-3 rounded shadow-sm border border-gray-400">
+                  <button 
+                    type="button"
+                    onClick={() => fileInputRef.current.click()}
+                    className="bg-[#E5E7EB] hover:bg-gray-300 text-gray-700 text-xs font-semibold py-1.5 px-3 rounded shadow-sm border border-gray-400"
+                  >
                     Upload File
                   </button>
-                  <div className="bg-[#E5E7EB] text-gray-700 w-6 h-6 flex items-center justify-center font-bold rounded shadow-sm border border-gray-400 cursor-pointer hover:bg-gray-300">
+                  <div 
+                    onClick={() => fileInputRef.current.click()}
+                    className="bg-[#E5E7EB] text-gray-700 w-6 h-6 flex items-center justify-center font-bold rounded shadow-sm border border-gray-400 cursor-pointer hover:bg-gray-300"
+                  >
                     +
                   </div>
-                  <span className="text-sm text-gray-600 truncate">x images__2_-removebg-preview.png</span>
+                  <span className="text-sm text-gray-600 truncate">{imageName}</span>
                 </div>
                 <p className="text-[10px] text-gray-600 italic mt-1">*Format file yang didukung: .jpg, .png, .jpeg. Ukuran maksimal 2 MB.</p>
               </div>
@@ -266,7 +390,11 @@ export default function AddJamu() {
               {/* Row 7: Buttons */}
               <div className="flex justify-end gap-3 mt-2">
                 {/* Simpan */}
-                <button className="bg-[#FFD700] hover:bg-[#E6C200] text-black text-[13px] font-bold py-2 px-6 rounded flex items-center gap-2 shadow-sm hover:scale-105 transition-transform">
+                <button 
+                  type="button"
+                  onClick={handleSimpan}
+                  className="bg-[#FFD700] hover:bg-[#E6C200] text-black text-[13px] font-bold py-2 px-6 rounded flex items-center gap-2 shadow-sm hover:scale-105 transition-transform"
+                >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                   </svg>
@@ -275,6 +403,7 @@ export default function AddJamu() {
 
                 {/* Batal */}
                 <button 
+                  type="button"
                   onClick={() => navigate('/dashboard_4dm13n')}
                   className="bg-[#8B0000] hover:bg-[#660000] text-white text-[13px] font-bold py-2 px-6 rounded flex items-center gap-2 shadow-sm hover:scale-105 transition-transform"
                 >
@@ -306,7 +435,7 @@ export default function AddJamu() {
           background: rgba(255, 255, 255, 0.8); 
         }
         option:checked {
-          background-color: rgba(255,255,255,0.2) !important;
+          background-color: #D68227 !important;
           color: white;
         }
       `}</style>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   fetchJamuById,
@@ -15,6 +15,9 @@ export default function EditJamu() {
   const { id } = useParams();
   const navigate = useNavigate();
   
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+
   const [formData, setFormData] = useState({
     id_jamu: '', nama_jamu: '', khasiat: '', kandungan: '', 
     aturan_minum: '', efek_samping: '', image: '',
@@ -22,12 +25,17 @@ export default function EditJamu() {
     id_produsen: '', id_lokasi_produksi: ''
   });
 
+  const [imagePreview, setImagePreview] = useState('');
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+
   const [options, setOptions] = useState({
     jenis: [], kabupaten: [], produsen: [], lokasiProduksi: [], perizinan: []
   });
 
   const [loading, setLoading] = useState(true);
 
+  // 🔥 PERBAIKAN 1: useEffect ini HANYA berjalan sekali saat ID berubah (Anti-reset data!)
   useEffect(() => {
     const loadAllData = async () => {
       try {
@@ -52,6 +60,10 @@ export default function EditJamu() {
             id_produsen: dataJamu.id_produsen || '',
             id_lokasi_produksi: dataJamu.id_lokasi_produksi || ''
           });
+
+          if (dataJamu.image) {
+            setImagePreview(`http://localhost:5000/static/uploads/${dataJamu.image}`);
+          }
         }
 
         setOptions({
@@ -71,20 +83,88 @@ export default function EditJamu() {
     };
 
     loadAllData();
-  }, [id]);
+  }, [id]); // 🚀 Bersih, cuma dengerin ID jamu
+
+  // 🔥 PERBAIKAN 2: Efek terpisah khusus mengurus pembersihan kamera saat pindah halaman
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraStream]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔥 MODIFIKASI UTAMA: Mengunci navigasi agar patuh ke dashboard admin setelah simpan
+  const aktifkanKamera = async () => {
+    try {
+      setIsCameraActive(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+      
+      setCameraStream(stream);
+      // Berikan delay micro-seconds agar elemen <video> sempat muncul di DOM sebelum ditembak stream
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error("Gagal membuka kamera:", err);
+      alert("Gagal mengakses kamera. Pastikan izin kamera sudah diberikan!");
+      setIsCameraActive(false);
+    }
+  };
+
+  const jepretFoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      // Gunakan resolusi asli video, atau fallback ke 640x480 jika belum termuat sempurna
+      canvas.width = videoRef.current.videoWidth || 640;
+      canvas.height = videoRef.current.videoHeight || 480;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const fileFoto = new File([blob], `jamu_kamera_${Date.now()}.jpg`, { type: 'image/jpeg' });
+          
+          setFormData((prev) => ({ ...prev, image: fileFoto }));
+          setImagePreview(URL.createObjectURL(fileFoto)); 
+          matikanKamera(); // Amankan jalur stream, matikan kamera setelah jepret sukses
+        }
+      }, 'image/jpeg');
+    }
+  };
+
+  const matikanKamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setIsCameraActive(false);
+  };
+
+  const handleFileChange = (e) => {
+    const berkas = e.target.files[0];
+    if (berkas) {
+      matikanKamera(); 
+      setFormData((prev) => ({ ...prev, image: berkas }));
+      setImagePreview(URL.createObjectURL(berkas));
+    }
+  };
+
   const handleSimpan = async (e) => {
-    e.preventDefault(); // Mencegah browser reload halaman otomatis ke rute utama '/'
+    e.preventDefault(); 
     try {
       const payload = new FormData();
       Object.keys(formData).forEach(key => {
-        // Amankan data agar nilai kosong/null tidak merusak pengiriman multipart
         if (formData[key] !== null && formData[key] !== undefined) {
           payload.append(key, formData[key]);
         }
@@ -94,7 +174,7 @@ export default function EditJamu() {
       await updateJamu(Number(id), payload);
       
       alert('Data jamu berhasil diperbarui!');
-      navigate('/dashboard_4dm13n'); // Navigasi sukses ke halaman admin khusus
+      navigate('/dashboard_4dm13n'); 
     } catch (error) {
       console.error('Detail kesalahan saat menyimpan data:', error);
       alert('Gagal memperbarui data jamu. Silakan periksa kembali koneksi backend Anda.');
@@ -106,7 +186,7 @@ export default function EditJamu() {
       try {
         await deleteJamu(Number(id));
         alert('Jamu berhasil dihapus!');
-        navigate('/admin/dashboard_4dm13n'); // Disamakan rutenya ke dashboard admin khusus
+        navigate('/dashboard_4dm13n'); 
       } catch (error) {
         alert('Gagal menghapus data jamu.');
         console.error(error);
@@ -139,7 +219,7 @@ export default function EditJamu() {
         </div>
       </header>
 
-      {/* SUB-HEADER / NAVIGATION TAB */}
+      {/* SUB-HEADER */}
       <div className="bg-[#2a4447] text-white px-8 py-3 flex gap-8 items-center text-sm font-medium">
         <button type="button" className="flex items-center gap-2 opacity-80 hover:opacity-100 transition">
           <span>➕</span> Tambah item
@@ -153,18 +233,46 @@ export default function EditJamu() {
       <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
         <form onSubmit={handleSimpan} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* KOLOM KIRI: IMAGE & ACTIONS */}
+          {/* KOLOM KIRI: KAMERA, IMAGE & ACTIONS */}
           <div className="lg:col-span-4 flex flex-col items-center gap-4">
-            <div className="w-full aspect-square max-w-[340px] bg-[#6c757d] rounded-3xl p-6 flex items-center justify-center shadow-inner relative overflow-hidden">
+            <div className="w-full aspect-square max-w-[340px] bg-[#6c757d] rounded-3xl p-2 flex items-center justify-center shadow-inner relative overflow-hidden">
+             {isCameraActive ? (
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                /* 🔥 TAMBAHKAN CLASS scale-x-[-1] DI SINI AGAR JADI SEPERTI CERMIN */
+                className="w-full h-full object-cover rounded-2xl bg-black scale-x-[-1]"
+              />
+            ) : (
               <img 
-                src={formData.image ? `http://localhost:5000/static/uploads/${formData.image}` : 'https://via.placeholder.com/300'} 
-                alt={formData.nama_jamu} 
+                src={imagePreview || 'https://via.placeholder.com/300'} 
+                alt={formData.nama_jamu || "Pratinjau Jamu"} 
                 className="w-full h-full object-cover rounded-2xl"
               />
+            )}
             </div>
+            
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept="image/*" 
+              className="hidden" 
+            />
+
             <div className="flex gap-3 w-full max-w-[340px] justify-center">
-              <button type="button" className="bg-[#f1dc34] hover:bg-yellow-400 text-black text-xs font-semibold px-3 py-2 rounded shadow transition">📷 Ambil Foto</button>
-              <button type="button" className="bg-[#f1dc34] hover:bg-yellow-400 text-black text-xs font-semibold px-3 py-2 rounded shadow transition">🖼️ Unggah Foto</button>
+              {isCameraActive ? (
+                <>
+                  <button type="button" onClick={jepretFoto} className="bg-[#13802b] hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded shadow transition">📸 Jepret Foto</button>
+                  <button type="button" onClick={matikanKamera} className="bg-[#8e1919] hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded shadow transition">❌ Batal</button>
+                </>
+              ) : (
+                <>
+                  <button type="button" onClick={aktifkanKamera} className="bg-[#f1dc34] hover:bg-yellow-400 text-black text-xs font-semibold px-3 py-2 rounded shadow transition">📷 Ambil Foto</button>
+                  <button type="button" onClick={() => fileInputRef.current.click()} className="bg-[#f1dc34] hover:bg-yellow-400 text-black text-xs font-semibold px-3 py-2 rounded shadow transition">🖼️ Unggah Foto</button>
+                </>
+              )}
             </div>
           </div>
 
@@ -254,7 +362,7 @@ export default function EditJamu() {
 
           {/* FOOTER ACTIONS */}
           <div className="mt-12 flex justify-between items-center border-t border-gray-300 pt-4 w-full col-span-12">
-            <button type="button" onClick={() => navigate('/admin/dashboard_4dm13n')} className="bg-[#606a6f] hover:bg-gray-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition">⬅️ Kembali</button>
+            <button type="button" onClick={() => navigate('/dashboard_4dm13n')} className="bg-[#606a6f] hover:bg-gray-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition">⬅️ Kembali</button>
             <div className="flex gap-3">
               <button type="button" onClick={handleHapus} className="bg-[#8e1919] hover:bg-red-800 text-white px-4 py-2 rounded shadow text-sm font-medium transition">🗑️ Hapus</button>
               <button type="submit" className="bg-[#13802b] hover:bg-green-800 text-white px-4 py-2 rounded shadow text-sm font-medium transition">💾 Simpan</button>

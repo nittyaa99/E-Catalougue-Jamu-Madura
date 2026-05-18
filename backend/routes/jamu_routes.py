@@ -1,13 +1,61 @@
 import os
+import joblib  
 from flask import Blueprint, jsonify, request
 from models.jamu_models import db, Jamu
 from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
+from sklearn.base import BaseEstimator, TransformerMixin  # <-- Tambah ini untuk custom transformer pipeline
 
 jamu_bp = Blueprint('jamu', __name__)
 
 # Folder tempat berkas gambar fisik disimpan di backend
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
+
+
+# ====================================================================
+# 🧠 0A. DEFINISI CUSTOM CLASS TEXT PREPROCESSOR (SUNTIK NAMESPACE)
+# ====================================================================
+# Joblib mewajibkan struktur kelas ini ada di file eksekusi utama agar proses load .pkl lancar.
+class TextPreprocessor(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+        
+    def fit(self, X, y=None):
+        return self
+        
+    def transform(self, X):
+        # 💡 CATATAN: Jika di Jupyter Notebook kemarin class ini memiliki logika 
+        # pembersihan teks khusus (case folding, stopword removal, dll), copas logikanya di sini.
+        # Minimal pastikan mengembalikan list string agar pipeline skikit-learn tidak pecah.
+        return [str(text) for text in X]
+
+# ⚡ Trik sakti menyuntikkan kelas ke module __main__ Flask
+import __main__
+__main__.TextPreprocessor = TextPreprocessor
+
+
+# ====================================================================
+# 🤖 0B. LOAD MODEL MACHINE LEARNING (Otomatis melacak folder NLP)
+# ====================================================================
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # Folder /backend/routes
+ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))  # Mundur ke root project
+MODEL_PATH = os.path.join(ROOT_DIR, "NLP", "nlp2", "model_pipeline.pkl")
+
+print("\n==============================================")
+print(f"🔬 Melacak Model ML ke: {MODEL_PATH}")
+print("==============================================\n")
+
+try:
+    model_ml = joblib.load(MODEL_PATH)
+    print("✅ Model Machine Learning Berhasil Dimuat!")
+except Exception as e:
+    print(f"⚠️ GAGAL MEMUAT MODEL ML: {e}")
+    model_ml = None
+
+# Fungsi Koreksi Typo Keluhan Bawaan NLP Abang
+def typo_correction(text):
+    # Tempel isi logika/kamus pembersihan typo buatan Abang di sini jika ada
+    return text
 
 
 # ====================================================================
@@ -60,14 +108,12 @@ def tambah_jamu():
         if not nama_jamu:
             return jsonify({"status": "error", "message": "Nama jamu tidak boleh kosong!"}), 400
         
-        # Simpan gambar apa adanya sesuai nama asli berkas yang di-upload
         nama_file_gambar = None
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename != '':
                 filename = secure_filename(file.filename)
                 
-                # Buat folder uploads otomatis jika belum ada di direktori
                 if not os.path.exists(UPLOAD_FOLDER):
                     os.makedirs(UPLOAD_FOLDER)
                     
@@ -129,7 +175,6 @@ def edit_jamu(id_edit):
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename != '':
-                # Hapus gambar lama dari folder statis biar kotoran file nggak numpuk
                 if target.image:
                     path_gambar_lama = os.path.join(UPLOAD_FOLDER, target.image)
                     if os.path.exists(path_gambar_lama):
@@ -157,7 +202,6 @@ def hapus_jamu(id_hapus):
         if not target:
             return jsonify({"status": "error", "message": "Data tidak ditemukan"}), 404
         
-        # 🔥 Logika pembersihan gambar fisik dari folder static/uploads
         if target.image:
             path_file_fisik = os.path.join(UPLOAD_FOLDER, target.image)
             if os.path.exists(path_file_fisik):
@@ -169,3 +213,101 @@ def hapus_jamu(id_hapus):
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ====================================================================
+# 🎯 6. GET ALL JAMU FOR PUBLIC (Dipakai Katalog Dashboard User Umum)
+# ====================================================================
+@jamu_bp.route('/jamu/public', methods=['GET'])
+def get_public_jamu():
+    try:
+        data_jamu = Jamu.query.all()
+        hasil_json = [item.to_dict() for item in data_jamu] 
+
+        return jsonify({
+            "status": "success",
+            "message": "Data katalog jamu publik berhasil diambil",
+            "data": hasil_json
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ====================================================================
+# 🎯 7. GET UNIQUE FILTERS FOR PUBLIC (Dinamis dari Database)
+# ====================================================================
+@jamu_bp.route('/jamu/public-filters', methods=['GET'])
+def get_public_filters():
+    try:
+        all_jamu = Jamu.query.all()
+        all_jamu_dict = [item.to_dict() for item in all_jamu]
+        
+        if all_jamu_dict:
+            print("\n==================================================================")
+            print("🔬 ISI DATA JAMU PERTAMA:", all_jamu_dict[0])
+            print("==================================================================\n")
+        
+        jenis_unik = sorted(list(set([item.get('nama_jenis') for item in all_jamu_dict if item.get('nama_jenis')])))
+        kabupaten_unik = sorted(list(set([item.get('nama_kabupaten') for item in all_jamu_dict if item.get('nama_kabupaten')])))
+        perizinan_unik = sorted(list(set([item.get('nama_perizinan') for item in all_jamu_dict if item.get('nama_perizinan')])))
+        
+        return jsonify({
+            "status": "success",
+            "message": "Data pilihan filter berhasil diekstrak",
+            "data": {
+                "jenis": jenis_unik,
+                "kabupaten": kabupaten_unik,
+                "perizinan": perizinan_unik
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ====================================================================
+# 🎯 8. POST RECOMMENDATION VIA ML PIPELINE (Menjawab Hasil Pencarian)
+# ====================================================================
+@jamu_bp.route('/jamu/recommend', methods=['POST', 'OPTIONS'])
+def dapatkan_rekomendasi_ml():
+    # 🔥 FIX 1: Cegat request OPTIONS (Preflight) dan langsung beri lampu hijau 200
+    if request.method == 'OPTIONS':
+        return jsonify({"status": "success"}), 200
+
+    if model_ml is None:
+        return jsonify({"status": "error", "message": "Model ML pkl tidak aktif di server", "data": []}), 500
+
+    try:
+        # 🔥 FIX 2: Tambahkan silent=True agar tidak melempar error 415 jika content-type meleset
+        data = request.get_json(silent=True) or {}
+        teks_input = data.get('keluhan', '')
+
+        if not teks_input or not teks_input.strip():
+            return jsonify({"status": "error", "message": "Teks keluhan tidak boleh kosong!"}), 400
+
+        # 🧠 1. Jalankan NLP ML Pipeline milik Abang
+        teks_terkoreksi = typo_correction(teks_input)
+        label_prediksi = model_ml.predict([teks_terkoreksi])[0]
+        probabilitas = model_ml.predict_proba([teks_terkoreksi]).max()
+
+        print("\n================== 🧠 AI PREDICTION LOG ==================")
+        print(f"Input User      : {teks_input}")
+        print(f"Koreksi Typo    : {teks_terkoreksi}")
+        print(f"Hasil Prediksi  : {label_prediksi}")
+        print(f"Confidence Score: {probabilitas:.4f}")
+        print("==========================================================\n")
+
+        # 🔍 2. Ambil data jamu lengkap dari SQLite berdasarkan kecocokan Label Prediksi
+        data_jamu = Jamu.query.filter(Jamu.khasiat.like(f"%{label_prediksi}%")).all()
+        hasil_json = [item.to_dict() for item in data_jamu]
+
+        return jsonify({
+            "status": "success",
+            "message": "Model AI berhasil meramu rekomendasi jamu",
+            "prediksi_label": str(label_prediksi),
+            "confidence": float(probabilitas),
+            "data": hasil_json
+        }), 200
+
+    except Exception as e:
+        print(f"❌ ERROR DI RUTE /recommend: {e}")
+        return jsonify({"status": "error", "message": str(e), "data": []}), 500

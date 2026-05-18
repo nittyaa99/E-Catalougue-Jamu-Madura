@@ -296,9 +296,48 @@ def dapatkan_rekomendasi_ml():
         print(f"Confidence Score: {probabilitas:.4f}")
         print("==========================================================\n")
 
-        # 🔍 2. Ambil data jamu lengkap dari SQLite berdasarkan kecocokan Label Prediksi
-        data_jamu = Jamu.query.filter(Jamu.khasiat.like(f"%{label_prediksi}%")).all()
-        hasil_json = [item.to_dict() for item in data_jamu]
+        # 🔍 2. Ambil data jamu lengkap dari SQLite dan berikan Skor Relevansi
+        semua_jamu = Jamu.query.all()
+        hasil_sementara = []
+        
+        kata_kunci = [w.lower() for w in teks_terkoreksi.split() if len(w) > 3]
+        input_lower = teks_input.lower()
+        terkoreksi_lower = teks_terkoreksi.lower()
+        label_lower = str(label_prediksi).lower()
+        
+        for item in semua_jamu:
+            khasiat = (item.khasiat or "").lower()
+            nama = (item.nama_jamu or "").lower()
+            skor = 0
+            
+            # Prioritas 1: Cocok persis dengan input keluhan (Skor sangat tinggi)
+            if input_lower in khasiat: skor += 100
+            if input_lower in nama: skor += 100
+            
+            if terkoreksi_lower != input_lower:
+                if terkoreksi_lower in khasiat: skor += 80
+                if terkoreksi_lower in nama: skor += 80
+                
+            # Prioritas 2: Cocok kata per kata dari keluhan (Skor menengah)
+            for kata in kata_kunci:
+                if kata in khasiat: skor += 20
+                if kata in nama: skor += 20
+                
+            # Prioritas 3: Label NLP match sebagai pelengkap (Skor rendah agar tidak merusak akurasi utama)
+            if label_lower in khasiat: skor += 5
+            if label_lower in nama: skor += 5
+            
+            # Hanya masukkan jamu yang relevan (skor > 0)
+            if skor > 0:
+                item_dict = item.to_dict()
+                item_dict['relevansi'] = skor
+                hasil_sementara.append(item_dict)
+                
+        # Urutkan berdasarkan skor tertinggi ke terendah
+        hasil_sementara = sorted(hasil_sementara, key=lambda x: x['relevansi'], reverse=True)
+        
+        # Ambil Top 10 terbaik
+        hasil_json = hasil_sementara[:10]
 
         return jsonify({
             "status": "success",

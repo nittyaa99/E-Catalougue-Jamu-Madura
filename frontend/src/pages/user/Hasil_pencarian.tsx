@@ -27,7 +27,6 @@ const Recommendation: React.FC = () => {
     
     setLoading(true);
     try {
-      // Mengirimkan teks keluhan ke endpoint Machine Learning Flask Abang
       const response = await fetch('http://localhost:5000/api/jamu/recommend', {
         method: 'POST',
         headers: {
@@ -39,7 +38,6 @@ const Recommendation: React.FC = () => {
       const jsonResult = await response.json();
       
       if (jsonResult.status === 'success') {
-        // Backend me-return array data jamu lengkap hasil query matching label prediksi ML
         setDataRekomendasi(jsonResult.data || []);
       } else {
         setDataRekomendasi([]);
@@ -52,14 +50,12 @@ const Recommendation: React.FC = () => {
     }
   };
 
-  // AUTOMATIS JALANKAN PREDIKSI ML SAAT USER MASUK PERTAMA KALI DARI DASHBOARD
   useEffect(() => {
     if (kataKunciAwal) {
       ambilRekomendasiML(kataKunciAwal);
     }
   }, [kataKunciAwal]);
 
-  // Handler saat user mengetik keluhan baru di halaman ini lalu menekan Enter/Submit
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     ambilRekomendasiML(searchText);
@@ -74,7 +70,7 @@ const Recommendation: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-[#FDFBF7]">
       <NavbarUser />
 
-      {/* Main Content dengan background kiri terkunci (bg-fixed) agar tidak melar saat zoom */}
+      {/* Main Content dengan background kiri terkunci (bg-fixed) */}
       <main 
         className="flex-grow pt-40 pb-24 flex flex-col items-center bg-cover bg-fixed bg-left bg-no-repeat relative"
         style={{ backgroundImage: `url('${bgImageLeft}')` }}
@@ -86,8 +82,8 @@ const Recommendation: React.FC = () => {
           
           {/* TOP SECTION: JUDUL HALAMAN & KAPSUL PENCARIAN */}
           <div className="flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 animate-[slideDownFade_0.8s_ease-out_forwards]">
-            <h1 className="text-[36px] sm:text-[46px] font-bold font-serif text-[#222] tracking-tight">
-              Hasil Rekomendasi
+            <h1 className="text-[36px] sm:text-[42px] font-bold font-serif text-[#222] tracking-tight">
+              Hasil Pencaharian
             </h1>
             
             {/* Search Input Kapsul */}
@@ -95,7 +91,6 @@ const Recommendation: React.FC = () => {
               onSubmit={handleSearchSubmit}
               className="flex items-center bg-[#e8dbdf] rounded-full px-6 py-4 w-full sm:w-auto sm:min-w-[420px] shadow-md transition-transform focus-within:scale-[1.02] border border-gray-300/40"
             >
-              {/* Tombol Panah Kembali ke Dashboard */}
               <button 
                 type="button"
                 onClick={() => navigate("/")} 
@@ -107,7 +102,6 @@ const Recommendation: React.FC = () => {
                  </svg>
               </button>
               
-              {/* Input Field Gejala Baru */}
               <input 
                 type="text" 
                 value={searchText}
@@ -116,7 +110,6 @@ const Recommendation: React.FC = () => {
                 className="bg-transparent border-none outline-none flex-grow text-[#222] px-2 text-[18px] placeholder-[#777] focus:ring-0"
               />
               
-              {/* Tombol Reset/Clear Teks */}
               {searchText && (
                 <button 
                   type="button"
@@ -138,18 +131,18 @@ const Recommendation: React.FC = () => {
               <p className="text-gray-700 font-bold text-lg animate-pulse">Model AI sedang menganalisis ramuan jamu terbaik...</p>
             </div>
           ) : (
-            /* GRID KATALOG REKOMENDASI (Dinamis Sesuai ID Hasil Output ML) */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8 sm:gap-10 justify-items-center justify-center">
+            /* 🔥 GRID KATALOG 5 KOLOM (Menghasilkan formasi pas 5-5 untuk Top 10) */
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-6 justify-items-center justify-center">
               {dataRekomendasi.length > 0 ? (
                 dataRekomendasi.map((item, idx) => (
                   <div 
                     key={item.id_jamu || idx}
                     onClick={() => handleCardClick(item)}
-                    className="bg-[#eef6ec] w-full max-w-[340px] rounded-[20px] p-4 pb-6 shadow-lg flex flex-col items-center hover:-translate-y-2 hover:shadow-2xl cursor-pointer transition-all duration-300 border border-green-100 animate-[slideUpFade_0.8s_ease-out_forwards]"
+                    className="bg-[#eef6ec] w-full max-w-[240px] rounded-[20px] p-4 pb-5 shadow-lg flex flex-col items-center hover:-translate-y-2 hover:shadow-2xl cursor-pointer transition-all duration-300 border border-green-100 animate-[slideUpFade_0.8s_ease-out_forwards]"
                     style={{ animationDelay: `${idx * 0.05}s` }}
                   >
                     {/* Gambar Produk */}
-                    <div className="w-full aspect-[4/5] bg-gradient-to-b from-yellow-100 to-orange-400 rounded-2xl shadow-inner overflow-hidden mb-6 relative flex flex-col items-center justify-center p-2 text-center border-[4px] border-orange-300">
+                    <div className="w-full aspect-[4/5] bg-gradient-to-b from-yellow-100 to-orange-400 rounded-2xl shadow-inner overflow-hidden mb-4 relative flex flex-col items-center justify-center p-2 text-center border-[3px] border-orange-300">
                        {item.image ? (
                           <img 
                             src={`http://localhost:5000/static/uploads/${item.image}`} 
@@ -158,8 +151,8 @@ const Recommendation: React.FC = () => {
                           />
                        ) : (
                           <>
-                            <span className="text-red-600 font-black text-[22px] leading-tight mb-2 uppercase px-2">{item.nama_jamu}</span>
-                            <span className="text-red-600 font-black text-[14px] leading-tight mb-4 uppercase">{item.nama_jenis || 'Tradisional'}</span>
+                            <span className="text-red-600 font-black text-[18px] leading-tight mb-1 uppercase px-1">{item.nama_jamu}</span>
+                            <span className="text-red-600 font-black text-[12px] leading-tight mb-2 uppercase">{item.nama_jenis || 'Tradisional'}</span>
                           </>
                        )}
                     </div>
@@ -167,9 +160,9 @@ const Recommendation: React.FC = () => {
                     {/* Detail Informasi Teks Kartu */}
                     <div className="w-full text-center flex-grow flex flex-col justify-between">
                        <div>
-                          <h3 className="text-gray-900 font-bold text-[22px] mb-2 truncate w-full px-2 capitalize">{item.nama_jamu}</h3>
-                          <p className="text-gray-600 text-[16px] font-semibold mb-3 uppercase tracking-wide">{item.nama_jenis || "Jamu Madura"}</p>
-                          <span className="inline-block px-4 py-1 bg-green-100 text-green-800 text-[14px] font-bold italic rounded-full shadow-sm">{item.nama_kabupaten || "Lokal"}</span>
+                          <h3 className="text-gray-900 font-bold text-[18px] mb-1 truncate w-full px-1 capitalize">{item.nama_jamu}</h3>
+                          <p className="text-gray-600 text-[14px] font-semibold mb-2 uppercase tracking-wide">{item.nama_jenis || "Jamu Madura"}</p>
+                          <span className="inline-block px-3 py-0.5 bg-green-100 text-green-800 text-[12px] font-bold italic rounded-full shadow-sm">{item.nama_kabupaten || "Lokal"}</span>
                        </div>
                     </div>
                   </div>
@@ -188,7 +181,7 @@ const Recommendation: React.FC = () => {
 
       <FooterUser />
 
-      {/* Modal Detail Produk (Otomatis membaca data lengkap jamu saat kartu diklik) */}
+      {/* Modal Detail Produk */}
       <DetailProduk 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

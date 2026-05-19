@@ -165,7 +165,7 @@ const UserDashboard: React.FC = () => {
               ref={searchInputRef}
               type="text"
               className="flex-grow bg-transparent border-none text-white placeholder-gray-300 px-6 text-[18px] sm:text-[20px] focus:outline-none focus:ring-0"
-              placeholder="for ex: jamu untuk sakit kepala dan pegal pegal............."
+              placeholder="Masukkan keluhan Anda disini yeah :)"
               value={keluhan}
               onChange={(e) => setKeluhan(e.target.value)}
             />

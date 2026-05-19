@@ -10,11 +10,12 @@ export default function Dashboard() {
   // State untuk menampung list jamu asli dari database
   const [dataJamu, setDataJamu] = useState<any[]>([]);
 
-  // --- STATE FILTER (Sekarang pakai Array agar bisa pilih banyak sekaligus) ---
+  // --- STATE FILTER & SEARCH ---
+  const [searchNama, setSearchNama] = useState<string>(""); // 🔥 State baru untuk search nama jamu
   const [filterJenis, setFilterJenis] = useState<string[]>([]);
   const [filterKabupaten, setFilterKabupaten] = useState<string[]>(["sampang"]);
 
-  // --- FUNGSI AMBIL DATA (Ambil semua data sekali saja di awal) ---
+  // --- FUNGSI AMBIL DATA ---
   const ambilDataJamu = async () => {
     try {
       const response = await api.get("/jamu");
@@ -30,7 +31,7 @@ export default function Dashboard() {
   
   useEffect(() => {
     setMounted(true);
-    ambilDataJamu(); // Cukup dipanggil sekali saat halaman terbuka
+    ambilDataJamu();
   }, []);
 
   const handleLogout = () => {
@@ -68,7 +69,7 @@ export default function Dashboard() {
     );
   };
 
-  // --- MASTER DATA DROPDOWN (Tetap utuh tidak akan mengecil/hilang) ---
+  // --- MASTER DATA DROPDOWN ---
   const daftarJenisUnik = Array.from(
     new Set(dataJamu.map((item) => item.nama_jenis).filter(Boolean))
   );
@@ -76,12 +77,19 @@ export default function Dashboard() {
     new Set(dataJamu.map((item) => item.nama_kabupaten).filter(Boolean))
   );
 
-  // --- PROSES PENYARINGAN REAL-TIME MULTIPLE CHOICE ---
+  // --- PROSES PENYARINGAN REAL-TIME MULTIPLE CHOICE + SEARCH NAMA ---
   const dataJamuTersering = dataJamu.filter((item) => {
-    // Jika filter kosong, loloskan semua. Jika diisi, harus ada di dalam list array filter
+    // 1. Cocokkan Search Nama Jamu (Case-Insensitive)
+    const cocokNama = item.nama_jamu 
+      ? item.nama_jamu.toLowerCase().includes(searchNama.toLowerCase()) 
+      : true;
+
+    // 2. Cocokkan Filter Dropdown Checkbox
     const cocokJenis = filterJenis.length > 0 ? filterJenis.includes(item.nama_jenis) : true;
     const cocokKabupaten = filterKabupaten.length > 0 ? filterKabupaten.includes(item.nama_kabupaten) : true;
-    return cocokJenis && cocokKabupaten;
+    
+    // Gabungkan semua kondisi penyaringan
+    return cocokNama && cocokJenis && cocokKabupaten;
   });
 
   return (
@@ -121,10 +129,33 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* --- SECTION FILTER MULTI-SELECT CHECKBOX --- */}
+          {/* --- SECTION FILTER MULTI-SELECT CHECKBOX & SEARCH --- */}
           <div className="px-4 mt-4 flex flex-col gap-4 overflow-y-auto flex-1 pb-4 custom-sidebar-scroll">
             <div className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider border-b border-[#E5DECD] pb-1">
               Filter Data
+            </div>
+
+            {/* 🔥 BARU: INPUT PENCARIAN NAMA JAMU */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold text-gray-700">Cari Jamu</label>
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={searchNama}
+                  onChange={(e) => setSearchNama(e.target.value)}
+                  placeholder="Ketik nama jamu..."
+                  className="w-full text-xs bg-white border border-[#E5DECD] rounded-lg py-2 pl-3 pr-8 shadow-inner outline-none focus:border-[#D68227] text-black placeholder-gray-400"
+                />
+                {searchNama && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchNama("")}
+                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 focus:outline-none text-xs font-bold"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Filter Jenis Jamu (Bisa Pilih Banyak) */}
@@ -145,7 +176,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Filter Asal Kabupaten (Bisa Pilih Banyak, misal Sampang & Bangkalan) */}
+            {/* Filter Asal Kabupaten (Bisa Pilih Banyak) */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-bold text-gray-700">Asal (Kabupaten)</label>
               <div className="max-h-28 overflow-y-auto border border-[#E5DECD] bg-white rounded-lg p-2 flex flex-col gap-1 shadow-inner">
@@ -163,10 +194,11 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Tombol Reset Filter */}
-            {(filterJenis.length > 0 || filterKabupaten.length > 0) && (
+            {/* Tombol Reset Semua Filter (Termasuk Search Bar) */}
+            {(searchNama !== "" || filterJenis.length > 0 || filterKabupaten.length > 0) && (
               <button
                 onClick={() => {
+                  setSearchNama("");
                   setFilterJenis([]);
                   setFilterKabupaten([]);
                 }}
@@ -253,11 +285,9 @@ export default function Dashboard() {
                     {/* Tombol Aksi */}
                     <div className="flex justify-center gap-2 mt-auto pt-2">
                       <button
-                      type="button"
-                         onClick={() => {
-                          // console.log("Cek Data Item:", item);
-                          // console.log("Cek ID:", item.id_jamu);
-                          navigate(`/admin/edit-jamu/${item.id_jamu}`); // matikan dulu navigasinya
+                        type="button"
+                        onClick={() => {
+                          navigate(`/admin/edit-jamu/${item.id_jamu}`);
                         }}
                         className="bg-[#FFD700] hover:bg-[#E6C200] text-black text-[10px] font-bold py-1.5 px-3 rounded flex items-center gap-1 transition"
                       >

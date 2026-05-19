@@ -39,7 +39,7 @@ __main__.TextPreprocessor = TextPreprocessor
 # ====================================================================
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # Folder /backend/routes
 ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))  # Mundur ke root project
-MODEL_PATH = os.path.join(ROOT_DIR, "NLP", "nlp2", "model_pipeline.pkl")
+MODEL_PATH = os.path.join(ROOT_DIR, "NLP", "nlp4", "model_pipeline.pkl")
 
 print("\n==============================================")
 print(f"🔬 Melacak Model ML ke: {MODEL_PATH}")

@@ -27,8 +27,8 @@ from imblearn.pipeline import Pipeline
 nltk.download('stopwords')
 
 """# Load Data"""
-
-df = pd.read_csv("data jamu.csv")
+csv_path="../../backend/Dataset jamu madura(with img).csv"
+df = pd.read_csv(csv_path)
 
 df
 
